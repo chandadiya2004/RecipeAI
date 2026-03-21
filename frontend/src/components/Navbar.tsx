@@ -50,6 +50,15 @@ const Navbar = () => {
               )}
             </Link>
             <Link 
+              to="/pantry" 
+              className={`relative px-4 py-2 text-sm font-semibold transition-all duration-300 rounded-full hover:bg-muted/50 ${isActive('/pantry') ? 'text-primary' : 'text-foreground/70 hover:text-foreground'}`}
+            >
+              Pantry Chef
+              {isActive('/pantry') && (
+                <motion.div layoutId="navbar-indicator" className="absolute bottom-0 left-4 right-4 h-[3px] rounded-t-full gradient-bg mix-blend-darken dark:mix-blend-lighten" />
+              )}
+            </Link>
+            <Link 
               to="/generator" 
               className={`relative px-4 py-2 text-sm font-semibold transition-all duration-300 rounded-full hover:bg-muted/50 ${isActive('/generator') ? 'text-primary' : 'text-foreground/70 hover:text-foreground'}`}
             >

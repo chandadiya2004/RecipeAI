@@ -20,7 +20,7 @@ export const suggestedRecipes: Omit<Recipe, 'ingredients' | 'steps' | 'calories'
     id: '1',
     title: 'Butter Chicken',
     description: 'Rich, creamy tomato-based curry with tender chicken pieces and aromatic spices.',
-    image: 'https://images.unsplash.com/photo-1603894584373-5ac82b6ae398?auto=format&fit=crop&q=80&w=800',
+    image: 'https://images.unsplash.com/photo-1588166524941-3bf61a9c41db?auto=format&fit=crop&q=80&w=800',
     cuisine: 'Indian',
     cuisineEmoji: '🍛',
     cookingTime: '45 min',
