@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChefHat, User } from 'lucide-react';
+import { User } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
@@ -29,10 +29,8 @@ const Navbar = () => {
         {/* Left Side: Logo & Navigation */}
         <div className="flex items-center gap-10">
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative">
-              <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center shadow-lg group-hover:shadow-primary/25 transition-all duration-300 group-hover:scale-105">
-                <ChefHat className="w-5 h-5 text-white" />
-              </div>
+            <div className="relative w-10 h-10 transition-all duration-300 group-hover:scale-105">
+              <img src="/favicon.svg" alt="RecipeAI Logo" className="w-full h-full object-contain drop-shadow-md" />
             </div>
             <span className="text-xl font-black tracking-tight text-foreground">
               Recipe<span className="gradient-text">AI</span>
