@@ -185,19 +185,19 @@ export default function Index() {
       </section>
 
       {/* ─── BENTO FEATURE GRID ─────────────────────────────────────── */}
-      <section className="py-28 px-6 max-w-7xl mx-auto w-full">
+      <section className="py-16 md:py-28 px-4 sm:px-6 max-w-7xl mx-auto w-full">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.7 }}
-          className="text-center mb-20"
+          className="text-center mb-12 md:mb-20"
         >
-          <h2 className="text-4xl md:text-5xl font-black tracking-tight mb-4">One platform. <span className="gradient-text">Endless meals.</span></h2>
-          <p className="text-muted-foreground max-w-xl mx-auto text-lg">Every feature you need to take the guesswork out of cooking — powered by state-of-the-art AI.</p>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight mb-4">One platform. <span className="gradient-text">Endless meals.</span></h2>
+          <p className="text-muted-foreground max-w-xl mx-auto text-base sm:text-lg">Every feature you need to take the guesswork out of cooking — powered by state-of-the-art AI.</p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 auto-rows-[280px]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 auto-rows-[300px] md:auto-rows-[280px]">
           
           {/* Big card: Pantry Chef */}
           <motion.div
@@ -209,13 +209,13 @@ export default function Index() {
           >
             <img src="/breakfast.jpg" alt="Pantry Chef" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
             <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-black/40 to-transparent" />
-            <Link to="/pantry" className="absolute inset-0 z-10 flex flex-col justify-end p-8">
-              <div className="w-12 h-12 rounded-xl gradient-bg flex items-center justify-center shadow-lg mb-5">
-                <Salad className="w-6 h-6 text-white" />
+            <Link to="/pantry" className="absolute inset-0 z-10 flex flex-col justify-end p-6 sm:p-8">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl gradient-bg flex items-center justify-center shadow-lg mb-4 sm:mb-5">
+                <Salad className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <h3 className="text-2xl font-black text-white mb-2">Pantry Chef</h3>
               <p className="text-white/75 text-sm max-w-sm leading-relaxed">Drop in what's in your fridge — tomatoes, eggs, leftover rice — and get a stunning recipe invented on the spot.</p>
-              <div className="mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-white/90 group-hover:gap-3 transition-all">
+              <div className="mt-4 sm:mt-5 inline-flex items-center gap-1.5 text-sm font-bold text-white/90 group-hover:gap-3 transition-all">
                 Try it now <ArrowRight className="w-4 h-4" />
               </div>
             </Link>
@@ -232,8 +232,8 @@ export default function Index() {
             <img src="/burger.jpg" alt="Dish Generator" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
             <Link to="/generator" className="absolute inset-0 z-10 flex flex-col justify-end p-6">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg mb-4">
-                <ChefHat className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg mb-4">
+                <ChefHat className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <h3 className="text-xl font-black text-white mb-1.5">Dish Generator</h3>
               <p className="text-white/70 text-sm leading-relaxed">Name any dish in the world. Get a perfect, professional-grade recipe in seconds.</p>
@@ -271,8 +271,8 @@ export default function Index() {
             <img src="/soup.jpg" alt="AI Chef" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
             <div className="absolute inset-0 z-10 flex flex-col justify-end p-6">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg mb-4">
-                <Sparkles className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg mb-4">
+                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <h3 className="text-xl font-black text-white mb-1.5">AI Sous-Chef</h3>
               <p className="text-white/70 text-sm leading-relaxed">Ask anything mid-cook — substitutions, timings, plating tips.</p>
@@ -290,8 +290,8 @@ export default function Index() {
             <img src="/snacks.jpg" alt="Health Analysis" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
             <div className="absolute inset-0 z-10 flex flex-col justify-end p-6">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg mb-4">
-                <Heart className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg mb-4">
+                <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <h3 className="text-xl font-black text-white mb-1.5">Health Analysis</h3>
               <p className="text-white/70 text-sm leading-relaxed">Every recipe comes with a dynamic health score, calories, and smart nutritional tags.</p>
@@ -302,28 +302,28 @@ export default function Index() {
       </section>
 
       {/* ─── FINAL CTA ──────────────────────────────────────────────── */}
-      <section className="py-20 px-6">
+      <section className="py-12 md:py-20 px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="relative max-w-4xl mx-auto rounded-[2.5rem] overflow-hidden text-center p-14 border border-border/50 shadow-2xl"
+          className="relative max-w-4xl mx-auto rounded-[2rem] md:rounded-[2.5rem] overflow-hidden text-center p-8 sm:p-14 border border-border/50 shadow-2xl"
         >
           <img src="/chicken lolipop.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none" />
           <div className="absolute inset-0 bg-gradient-to-br from-purple-600/80 via-pink-600/70 to-orange-500/80 backdrop-blur-[2px]" />
           <div className="relative z-10">
-            <h2 className="text-4xl md:text-5xl font-black text-white mb-5 text-balance">Ready to reinvent your kitchen?</h2>
-            <p className="text-white/80 text-lg mb-10 max-w-lg mx-auto">Join thousands of home cooks who use RecipeAI every day to discover new flavors, reduce food waste, and eat healthier.</p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link to="/pantry">
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="h-14 px-9 rounded-full bg-white text-gray-900 font-bold text-base flex items-center gap-2.5 shadow-xl hover:bg-white/90 transition-all">
-                  <Salad className="w-5 h-5 text-primary" />
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3 sm:mb-5 text-balance">Ready to reinvent your kitchen?</h2>
+            <p className="text-white/80 text-base sm:text-lg mb-8 sm:mb-10 max-w-lg mx-auto">Join thousands of home cooks who use RecipeAI every day to discover new flavors, reduce food waste, and eat healthier.</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+              <Link to="/pantry" className="w-full sm:w-auto">
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full h-12 sm:h-14 px-8 rounded-full bg-white text-gray-900 font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-xl hover:bg-white/90 transition-all">
+                  <Salad className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                   Pantry Chef
                 </motion.button>
               </Link>
-              <Link to="/generator">
-                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="h-14 px-9 rounded-full border-2 border-white/50 text-white font-bold text-base flex items-center gap-2 hover:bg-white/10 transition-all">
-                  <ChefHat className="w-5 h-5" />
+              <Link to="/generator" className="w-full sm:w-auto">
+                <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="w-full h-12 sm:h-14 px-8 rounded-full border-2 border-white/50 text-white font-bold text-sm sm:text-base flex items-center justify-center gap-2 hover:bg-white/10 transition-all">
+                  <ChefHat className="w-4 h-4 sm:w-5 sm:h-5" />
                   Dish Generator
                 </motion.button>
               </Link>

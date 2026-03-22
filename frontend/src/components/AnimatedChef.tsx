@@ -64,7 +64,7 @@ const AnimatedChef = () => {
         {/* Orbiting / Flying Ingredients */}
         {ingredients.map((item, i) => {
           const angle = (i / ingredients.length) * Math.PI * 2;
-          const radius = 140; // Desktop radius
+          const radius = typeof window !== 'undefined' && window.innerWidth < 640 ? 100 : 140; // Auto radius
           const x = Math.cos(angle) * radius;
           const y = Math.sin(angle) * radius;
 
