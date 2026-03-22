@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { User, Home, Salad, ChefHat } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { User, Home, Salad, ChefHat, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const navItems = [
@@ -12,6 +12,7 @@ const navItems = [
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -33,28 +34,28 @@ const Navbar = () => {
           maxWidth: scrolled ? '1000px' : '1536px'
         }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-        className={`pointer-events-auto transition-all duration-300 flex items-center justify-between mx-auto ${
+        className={`pointer-events-auto transition-all duration-300 flex items-center justify-between mx-auto relative ${
           scrolled 
-            ? 'glass shadow-[0_8px_30px_rgb(0,0,0,0.12)] bg-background/80 backdrop-blur-2xl border border-border/50 rounded-full px-6 py-3 mt-0 rounded-b-2xl sm:rounded-full' 
-            : 'bg-transparent pt-6 px-6 sm:px-10 pb-4 border-b border-transparent'
+            ? 'glass shadow-[0_8px_30px_rgb(0,0,0,0.12)] bg-background/80 backdrop-blur-2xl border border-border/50 rounded-full px-4 sm:px-6 py-3 mt-0 rounded-b-2xl sm:rounded-full' 
+            : 'bg-transparent pt-6 px-4 sm:px-10 pb-4 border-b border-transparent'
         }`}
       >
         
         {/* Left Side: Logo */}
-        <Link to="/" className="flex items-center gap-3 group shrink-0">
+        <Link to="/" className="flex items-center gap-3 group shrink-0" onClick={() => setIsMobileMenuOpen(false)}>
           <motion.div 
             whileHover={{ rotate: 15, scale: 1.1 }}
             transition={{ type: "spring", stiffness: 400, damping: 10 }}
-            className="relative w-10 h-10 flex-shrink-0"
+            className="relative w-9 h-9 sm:w-10 sm:h-10 flex-shrink-0"
           >
             <img src="/favicon.svg" alt="RecipeAI Logo" className="w-full h-full object-contain drop-shadow-md" />
           </motion.div>
-          <span className="text-xl font-black tracking-tight text-foreground hidden sm:block">
+          <span className="text-lg sm:text-xl font-black tracking-tight text-foreground">
             Recipe<span className="gradient-text">AI</span>
           </span>
         </Link>
 
-        {/* Center: Navigation Links */}
+        {/* Center: Desktop Navigation Links */}
         <div className="hidden md:flex items-center gap-1 bg-muted/40 p-1.5 rounded-full border border-border/30 backdrop-blur-md">
           {navItems.map((item) => (
             <Link
@@ -97,18 +98,73 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* Right Side: Action Button */}
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex items-center gap-2 px-6 py-2.5 rounded-full gradient-bg text-white text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300 glow-primary shrink-0 group overflow-hidden relative"
-        >
-          {/* Shine effect */}
-          <div className="absolute inset-0 -translate-x-[150%] bg-gradient-to-r from-transparent via-white/40 to-transparent group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out z-10" />
-          
-          <User className="w-4 h-4 relative z-20" />
-          <span className="relative z-20">Sign In</span>
-        </motion.button>
+        {/* Right Side: Action Button (Desktop) & Mobile Menu Toggle */}
+        <div className="flex items-center gap-2">
+          {/* Sign In Button (Hidden on Mobile) */}
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="hidden md:flex items-center gap-2 px-6 py-2.5 rounded-full gradient-bg text-white text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300 glow-primary shrink-0 group overflow-hidden relative"
+          >
+            {/* Shine effect */}
+            <div className="absolute inset-0 -translate-x-[150%] bg-gradient-to-r from-transparent via-white/40 to-transparent group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out z-10" />
+            
+            <User className="w-4 h-4 relative z-20" />
+            <span className="relative z-20">Sign In</span>
+          </motion.button>
+
+          {/* Mobile Hamburger Button */}
+          <button 
+            className="md:hidden flex items-center justify-center p-2 rounded-full hover:bg-muted/50 transition-colors"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6 text-foreground" /> : <Menu className="w-6 h-6 text-foreground" />}
+          </button>
+        </div>
+
+        {/* Mobile Dropdown Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="absolute top-full left-0 right-0 mt-3 p-4 glass rounded-3xl border border-border/50 shadow-2xl flex flex-col gap-2 mx-0 bg-background/95 backdrop-blur-3xl md:hidden origin-top"
+            >
+              {navItems.map((item) => (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className={`flex items-center gap-4 px-5 py-4 rounded-2xl text-base font-bold transition-all duration-300 ${
+                    isActive(item.path) 
+                      ? 'bg-primary/10 text-primary scale-[1.02]' 
+                      : 'hover:bg-muted/50 text-foreground/80 hover:text-foreground'
+                  }`}
+                >
+                  <span className={`${isActive(item.path) ? 'scale-110' : 'scale-100'} transition-transform`}>
+                    {item.icon}
+                  </span>
+                  {item.label}
+                </Link>
+              ))}
+              
+              <div className="h-px w-full bg-border/50 my-2" />
+              
+              <button 
+                className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl gradient-bg text-white text-base font-bold shadow-lg shadow-primary/20 glow-primary active:scale-[0.98] transition-all"
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                <User className="w-5 h-5" />
+                Sign In
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
         
       </motion.nav>
     </div>
