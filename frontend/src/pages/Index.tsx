@@ -3,7 +3,7 @@ import Navbar from '@/components/Navbar';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Sparkles, ChefHat, Salad, Star, Zap, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
+import AnimatedChef from '@/components/AnimatedChef';
 // Food images from public folder
 const dishes = [
   { src: '/breakfast.jpg', label: 'Breakfast Bowl', category: 'Morning' },
@@ -53,91 +53,108 @@ export default function Index() {
       <Navbar />
 
       {/* ─── HERO ──────────────────────────────────────────────────── */}
-      <section className="relative flex flex-col items-center justify-center min-h-screen pt-28 pb-16 px-6 overflow-hidden">
+      <section className="relative flex flex-col justify-center min-h-[95vh] pt-32 pb-20 px-6 xl:px-12 overflow-hidden">
         {/* Ambient blobs */}
         <motion.div style={{ y: heroBgY }} className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-purple-400/20 blur-[120px] rounded-full" />
-          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-orange-400/15 blur-[120px] rounded-full" />
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-primary/20 blur-[120px] rounded-full animate-pulse-glow" />
+          <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-[hsl(40_80%_55%)]/15 blur-[120px] rounded-full" />
         </motion.div>
 
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8 inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/70 backdrop-blur px-5 py-2 text-sm font-semibold text-foreground/70 shadow-sm"
-        >
-          <Sparkles className="w-4 h-4 text-primary animate-pulse" />
-          Next-Generation Culinary AI
-        </motion.div>
-
-        {/* Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.1 }}
-          className="text-center text-5xl sm:text-6xl md:text-[5.5rem] font-black leading-[1.05] tracking-tight max-w-5xl text-balance"
-        >
-          Cook smarter.{' '}
-          <span className="gradient-text">Eat better.</span>
-          <br />Every single day.
-        </motion.h1>
-
-        {/* Subheading */}
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="mt-7 max-w-2xl text-center text-lg text-muted-foreground leading-relaxed text-balance"
-        >
-          Tell us what's in your fridge — or what you're craving — and our AI chef will craft the perfect recipe, complete with a health score and your personal sous-chef on standby.
-        </motion.p>
-
-        {/* CTAs */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="mt-10 flex flex-col sm:flex-row items-center gap-4"
-        >
-          <Link to="/pantry">
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              className="h-14 px-9 rounded-full gradient-bg text-white font-bold text-base flex items-center gap-2.5 shadow-[0_0_40px_hsl(330_80%_60%_/_0.35)] hover:shadow-[0_0_60px_hsl(330_80%_60%_/_0.5)] transition-all duration-300"
+        <div className="max-w-[90rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-12 lg:gap-8 items-center">
+          
+          {/* Left Side (Text & CTAs) */}
+          <div className="flex flex-col z-10 lg:pr-8">
+            {/* Badge */}
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="mb-8 self-start inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 backdrop-blur px-5 py-2 text-sm font-semibold text-primary shadow-[0_0_15px_hsl(140_60%_40%_/_0.15)]"
             >
-              <Salad className="w-5 h-5" />
-              Start from your Fridge
-            </motion.button>
-          </Link>
-          <Link to="/generator">
-            <motion.button
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
-              className="h-14 px-9 rounded-full border-2 border-border bg-card/60 backdrop-blur text-foreground font-bold text-base flex items-center gap-2 hover:border-primary/40 hover:bg-muted/40 transition-all duration-300"
-            >
-              <ChefHat className="w-5 h-5 text-primary" />
-              Craving a dish?
-              <ArrowRight className="w-4 h-4" />
-            </motion.button>
-          </Link>
-        </motion.div>
+              <Sparkles className="w-4 h-4 animate-pulse" />
+              Next-Generation Culinary AI
+            </motion.div>
 
-        {/* Stats row */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5 }}
-          className="mt-16 flex flex-wrap items-center justify-center gap-10 text-center"
-        >
-          {stats.map((s, i) => (
-            <div key={i} className="flex flex-col items-center gap-1">
-              <div className="flex items-center gap-1.5 text-primary">{s.icon}</div>
-              <span className="text-3xl font-black">{s.value}</span>
-              <span className="text-sm text-muted-foreground font-medium">{s.label}</span>
-            </div>
-          ))}
-        </motion.div>
+            {/* Headline */}
+            <motion.h1
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.1 }}
+              className="text-left text-5xl sm:text-6xl md:text-[5rem] lg:text-[5.5rem] font-black leading-[1.05] tracking-tight text-balance"
+            >
+              Cook smarter.{' '}
+              <span className="gradient-text drop-shadow-sm">Eat better.</span>
+              <br />Every single day.
+            </motion.h1>
+
+            {/* Subheading */}
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+              className="mt-7 max-w-xl text-left text-lg sm:text-xl text-muted-foreground leading-relaxed text-balance"
+            >
+              Tell us what's in your fridge — or what you're craving — and our AI chef will craft the perfect earthy recipe, complete with a health score and your personal sous-chef on standby.
+            </motion.p>
+
+            {/* CTAs */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+              className="mt-10 flex flex-col sm:flex-row items-center sm:items-start gap-4"
+            >
+              <Link to="/pantry" className="w-full sm:w-auto">
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="w-full h-15 px-8 py-4 rounded-full gradient-bg text-white font-bold text-lg flex items-center justify-center gap-3 shadow-[0_0_40px_hsl(140_60%_40%_/_0.35)] hover:shadow-[0_0_60px_hsl(140_60%_40%_/_0.5)] transition-all duration-300 glow-primary"
+                >
+                  <Salad className="w-6 h-6" />
+                  Start from your Fridge
+                </motion.button>
+              </Link>
+              <Link to="/generator" className="w-full sm:w-auto">
+                <motion.button
+                  whileHover={{ scale: 1.04 }}
+                  whileTap={{ scale: 0.96 }}
+                  className="w-full h-15 px-8 py-4 rounded-full border-2 border-primary/30 bg-background/60 backdrop-blur text-foreground font-bold text-lg flex items-center justify-center gap-2 hover:border-primary/60 hover:bg-primary/5 transition-all duration-300"
+                >
+                  <ChefHat className="w-6 h-6 text-primary" />
+                  Craving a dish?
+                  <ArrowRight className="w-5 h-5 ml-1" />
+                </motion.button>
+              </Link>
+            </motion.div>
+
+            {/* Stats row */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-14 flex flex-wrap items-center justify-start gap-12"
+            >
+              {stats.map((s, i) => (
+                <div key={i} className="flex flex-col items-start gap-1">
+                  <div className="flex items-center gap-1.5 text-primary bg-primary/10 px-2 py-1 rounded-md mb-1">{s.icon}</div>
+                  <span className="text-3xl font-black">{s.value}</span>
+                  <span className="text-sm text-muted-foreground font-bold uppercase tracking-wider">{s.label}</span>
+                </div>
+              ))}
+            </motion.div>
+          </div>
+
+          {/* Right Side (Animated Scene) */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
+            animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+            transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full h-full min-h-[500px] lg:min-[600px] relative z-0 flex items-center justify-center mt-10 lg:mt-0"
+          >
+            <AnimatedChef />
+          </motion.div>
+
+        </div>
       </section>
 
       {/* ─── INFINITE IMAGE MARQUEE ─────────────────────────────────── */}

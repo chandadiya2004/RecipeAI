@@ -5,45 +5,45 @@
 @tailwind utilities;
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 220 20% 10%;
+    --background: 40 30% 98%;
+    --foreground: 25 30% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 10%;
+    --card-foreground: 25 30% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 10%;
+    --popover-foreground: 25 30% 15%;
 
-    --primary: 330 80% 60%;
+    --primary: 140 60% 40%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 220 20% 20%;
+    --secondary: 40 40% 92%;
+    --secondary-foreground: 25 30% 20%;
 
-    --muted: 210 20% 95%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 40 20% 95%;
+    --muted-foreground: 25 15% 45%;
 
-    --accent: 160 50% 90%;
-    --accent-foreground: 160 50% 25%;
+    --accent: 140 40% 90%;
+    --accent-foreground: 140 60% 25%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 330 80% 60%;
+    --border: 40 20% 86%;
+    --input: 40 20% 86%;
+    --ring: 140 60% 40%;
 
     --radius: 1rem;
 
     /* Custom tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(270 70% 60%), hsl(330 80% 60%), hsl(15 90% 60%), hsl(40 95% 55%));
-    --gradient-primary-hover: linear-gradient(135deg, hsl(270 75% 55%), hsl(330 85% 55%), hsl(15 95% 55%), hsl(40 100% 50%));
-    --gradient-bg-aura: radial-gradient(ellipse at 30% 20%, hsl(270 70% 92% / 0.5), transparent 50%), radial-gradient(ellipse at 70% 80%, hsl(330 80% 92% / 0.4), transparent 50%), radial-gradient(ellipse at 50% 50%, hsl(40 95% 92% / 0.3), transparent 60%);
+    --gradient-primary: linear-gradient(135deg, hsl(145 60% 40%), hsl(95 50% 45%), hsl(40 80% 55%), hsl(25 70% 50%));
+    --gradient-primary-hover: linear-gradient(135deg, hsl(145 65% 35%), hsl(95 55% 40%), hsl(40 85% 50%), hsl(25 75% 45%));
+    --gradient-bg-aura: radial-gradient(ellipse at 30% 20%, hsl(145 60% 90% / 0.5), transparent 50%), radial-gradient(ellipse at 70% 80%, hsl(40 60% 90% / 0.6), transparent 50%), radial-gradient(ellipse at 50% 50%, hsl(25 70% 92% / 0.3), transparent 60%);
     --glass-bg: hsl(0 0% 100% / 0.7);
     --glass-border: hsl(0 0% 100% / 0.5);
-    --glass-shadow: 0 8px 32px hsl(220 20% 10% / 0.08), 0 2px 8px hsl(220 20% 10% / 0.04);
-    --glass-shadow-hover: 0 16px 48px hsl(220 20% 10% / 0.12), 0 4px 16px hsl(220 20% 10% / 0.06);
-    --glow-primary: 0 0 20px hsl(330 80% 60% / 0.3), 0 0 60px hsl(270 70% 60% / 0.15);
+    --glass-shadow: 0 8px 32px hsl(25 30% 10% / 0.08), 0 2px 8px hsl(25 30% 10% / 0.04);
+    --glass-shadow-hover: 0 16px 48px hsl(25 30% 10% / 0.12), 0 4px 16px hsl(25 30% 10% / 0.06);
+    --glow-primary: 0 0 20px hsl(145 60% 40% / 0.3), 0 0 60px hsl(95 50% 45% / 0.15);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
