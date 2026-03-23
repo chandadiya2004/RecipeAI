@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Home, Salad, ChefHat, Menu, X } from 'lucide-react';
+import { User, Home, Salad, ChefHat, History, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
 
 const navItems = [
   { path: '/', label: 'Home', icon: <Home className="w-4 h-4" /> },
   { path: '/pantry', label: 'Pantry Chef', icon: <Salad className="w-4 h-4" /> },
   { path: '/generator', label: 'Dish Generator', icon: <ChefHat className="w-4 h-4" /> },
+  { path: '/history', label: 'History', icon: <History className="w-4 h-4" /> },
 ];
 
 const Navbar = () => {
@@ -158,17 +160,35 @@ const Navbar = () => {
         {/* Right Side: Action Button (Desktop) & Mobile Menu Toggle */}
         <div className="flex items-center gap-2">
           {/* Sign In Button (Hidden on Mobile) */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="hidden md:flex items-center gap-2 px-6 py-2.5 rounded-full gradient-bg text-white text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300 glow-primary shrink-0 group overflow-hidden relative"
-          >
-            {/* Shine effect */}
-            <div className="absolute inset-0 -translate-x-[150%] bg-gradient-to-r from-transparent via-white/40 to-transparent group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out z-10" />
-            
-            <User className="w-4 h-4 relative z-20" />
-            <span className="relative z-20">Sign In</span>
-          </motion.button>
+          <div className="hidden md:flex items-center gap-2">
+            <SignedOut>
+              <SignInButton mode="modal">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-full gradient-bg text-white text-sm font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all duration-300 glow-primary shrink-0 group overflow-hidden relative"
+                >
+                  <div className="absolute inset-0 -translate-x-[150%] bg-gradient-to-r from-transparent via-white/40 to-transparent group-hover:translate-x-[150%] transition-transform duration-1000 ease-in-out z-10" />
+                  <User className="w-4 h-4 relative z-20" />
+                  <span className="relative z-20">Sign In</span>
+                </motion.button>
+              </SignInButton>
+              <SignUpButton mode="modal">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-border/70 bg-background/70 text-foreground text-sm font-bold shadow-sm hover:shadow-md transition-all duration-300"
+                >
+                  Sign Up
+                </motion.button>
+              </SignUpButton>
+            </SignedOut>
+            <SignedIn>
+              <div className="rounded-full border border-border/60 bg-background/90 p-1">
+                <UserButton afterSignOutUrl="/" />
+              </div>
+            </SignedIn>
+          </div>
 
           {/* Mobile Hamburger Button */}
           <button
@@ -213,15 +233,25 @@ const Navbar = () => {
               ))}
               
               <div className="h-px w-full bg-border/50 my-2" />
-              
-              <button 
-                type="button"
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl gradient-bg text-white text-base font-bold shadow-lg shadow-primary/20 glow-primary active:scale-[0.98] transition-all"
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                <User className="w-5 h-5" />
-                Sign In
-              </button>
+
+              <SignedOut>
+                <SignInButton mode="modal">
+                  <button
+                    type="button"
+                    className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl gradient-bg text-white text-base font-bold shadow-lg shadow-primary/20 glow-primary active:scale-[0.98] transition-all"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <User className="w-5 h-5" />
+                    Sign In
+                  </button>
+                </SignInButton>
+              </SignedOut>
+
+              <SignedIn>
+                <div className="w-full flex items-center justify-center py-2">
+                  <UserButton afterSignOutUrl="/" />
+                </div>
+              </SignedIn>
             </motion.div>
           )}
         </AnimatePresence>

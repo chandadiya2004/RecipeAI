@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import router as api_router
+from services.activity_service import initialize_activity_store
 import os
 
 app = FastAPI(title="Recipe Maker AI Backend")
@@ -18,6 +19,11 @@ app.add_middleware(
 )
 
 app.include_router(api_router, prefix="/api")
+
+
+@app.on_event("startup")
+def on_startup() -> None:
+    initialize_activity_store()
 
 @app.get("/")
 @app.head("/")

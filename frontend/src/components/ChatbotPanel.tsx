@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Bot, User } from 'lucide-react';
+import { useAuth } from '@clerk/clerk-react';
 import { Recipe } from '@/data/recipes';
 
 interface Message {
@@ -13,6 +14,7 @@ interface ChatbotPanelProps {
 }
 
 const ChatbotPanel = ({ currentRecipe }: ChatbotPanelProps) => {
+  const { getToken } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: "Hi! I'm your AI Sous-Chef. Need help with a recipe, ingredient substitutions, or cooking tips?" }
   ]);
@@ -40,12 +42,18 @@ const ChatbotPanel = ({ currentRecipe }: ChatbotPanelProps) => {
     setIsLoading(true);
 
     try {
+      const token = await getToken();
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify({ 
           messages: newMessages.filter(m => m.role !== 'system'),
-          context: currentRecipe || null
+          context: currentRecipe || null,
+          source: 'dish_generator_chat',
         })
       });
 

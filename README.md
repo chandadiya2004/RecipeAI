@@ -80,6 +80,9 @@ Create a `.env` file in the `backend/` directory:
 # backend/.env
 GROQ_API_KEY=your_groq_api_key_here
 ALLOWED_ORIGINS=*
+CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+CLERK_SECRET_KEY=your_clerk_secret_key
+SUPABASE_DB_URL=your_supabase_transaction_pooler_postgres_url
 ```
 
 Start the FastAPI server:
@@ -99,6 +102,7 @@ Create a `.env.development` file in the `frontend/` directory:
 ```env
 # frontend/.env.development
 VITE_API_URL=http://localhost:8000
+VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 ```
 
 Start the Vite development server:

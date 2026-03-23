@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Minus, Plus, Zap } from 'lucide-react';
+import { useAuth } from '@clerk/clerk-react';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import GeneratedRecipe from '@/components/GeneratedRecipe';
@@ -90,6 +91,7 @@ const quickSets = [
 ];
 
 const PantryChef = () => {
+  const { getToken } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showRecipe, setShowRecipe] = useState(false);
   const [recipeData, setRecipeData] = useState<Recipe | null>(null);
@@ -115,10 +117,16 @@ const PantryChef = () => {
       if (data.servings) payload.servings = data.servings;
       if (data.cuisine) payload.cuisine = data.cuisine;
       if (data.dish_name) payload.dish_name = data.dish_name;
+      payload.source = 'pantry_chef';
+
+      const token = await getToken();
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/generate-recipe`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
         body: JSON.stringify(payload),
       });
 
