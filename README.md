@@ -20,6 +20,10 @@
 ## ✨ Overview
 **RecipeAI** is a modern, beautifully designed web application that brings an expert AI Sous-Chef directly into your kitchen. Whether you have specific ingredients you need to use up, or you're just craving a specific dish, RecipeAI generates perfectly tailored recipes, nutritional facts, and step-by-step cooking instructions on demand.
 
+## 🖼️ App Preview
+
+![RecipeAI App Screenshot](frontend/public/recipe-ai.png)
+
 ## 🚀 Key Features
 
 * 🥗 **Pantry Chef (Ingredient-First Cooking)**
@@ -33,6 +37,15 @@
 
 * 💫 **Stunning, Fluid User Interface**
   Built with **Framer Motion**, the interface features buttery-smooth micro-animations, glassmorphism UI elements, dynamic scroll restoration, and a highly responsive layout that looks great on both mobile and desktop.
+
+* 🔐 **Clerk Authentication (Protected App Flows)**
+  Pantry Chef, Dish Generator, Chat, and History are protected using Clerk. Users must sign in to access core AI features.
+
+* 🕘 **Activity History with Supabase Postgres**
+  User activity is stored in Supabase transaction pooler Postgres and displayed in a dedicated History page with separate sections for **Pantry Chef** and **Dish Generator**.
+
+* 🧹 **One-Click Clear History**
+  Users can clear only their own activity history from the History screen using a secure authenticated API.
 
 ---
 
@@ -52,6 +65,8 @@
 - **Framework:** [FastAPI](https://fastapi.tiangolo.com/) (Python 3.11)
 - **Server:** [Uvicorn](https://www.uvicorn.org/)
 - **AI Integration:** [Groq API](https://groq.com/) using the `llama-3.3-70b-versatile` model for lightning-fast inference.
+- **Authentication:** [Clerk](https://clerk.com/) JWT verification (RS256 + JWKS)
+- **Activity Storage:** Supabase Postgres (transaction pooler) via `psycopg`
 - **Data Validation:** Pydantic models
 - **Environment Management:** python-dotenv
 - **Deployment Ready:** Render
@@ -85,11 +100,20 @@ CLERK_SECRET_KEY=your_clerk_secret_key
 SUPABASE_DB_URL=your_supabase_transaction_pooler_postgres_url
 ```
 
+> If your DB password contains special characters (like `@`), URL-encode it in `SUPABASE_DB_URL` (example: `@` → `%40`).
+
 Start the FastAPI server:
 ```bash
 uvicorn main:app --reload
 ```
 *The backend will be running at `http://localhost:8000`*
+
+### 2.1 Backend API Summary
+
+- `POST /api/generate-recipe` (auth required)
+- `POST /api/chat` (auth required)
+- `GET /api/activity-history` (auth required)
+- `DELETE /api/activity-history` (auth required, clears current user history only)
 
 ### 3. Frontend Setup
 Open a new terminal, navigate to the frontend folder:
@@ -105,6 +129,10 @@ VITE_API_URL=http://localhost:8000
 VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 ```
 
+After signing in, open `/history` in the app to view grouped activity in:
+- Pantry Chef
+- Dish Generator
+
 Start the Vite development server:
 ```bash
 npm run dev
@@ -119,15 +147,38 @@ npm run dev
 1. Push your repository to GitHub.
 2. Connect your repo to Render as a **Web Service**.
 3. Render will automatically detect the `render.yaml` and `backend/.python-version` files.
-4. Set the `GROQ_API_KEY` Environment Variable in the Render dashboard.
+4. Set environment variables in Render dashboard:
+  - `GROQ_API_KEY`
+  - `ALLOWED_ORIGINS`
+  - `CLERK_PUBLISHABLE_KEY`
+  - `CLERK_SECRET_KEY`
+  - `SUPABASE_DB_URL`
 5. Provide the Render URL to your frontend.
 
 ### Frontend (Vercel)
 1. Import your GitHub repository to Vercel.
 2. Set the **Root Directory** to `frontend`.
-3. Add the `VITE_API_URL` environment variable pointing to your deployed Render backend (e.g., `https://recipeai-backend.onrender.com`).
+3. Add environment variables:
+   - `VITE_API_URL` pointing to your deployed Render backend (e.g., `https://recipeai-backend.onrender.com`)
+   - `VITE_CLERK_PUBLISHABLE_KEY`
 4. Custom SPA routing rules are already configured via the included `vercel.json` file.
 5. Deploy!
+
+---
+
+## 🧰 Troubleshooting
+
+- **History not updating**
+  - Ensure backend has `psycopg` installed: `pip install -r requirements.txt`
+  - Confirm `SUPABASE_DB_URL` is valid and reachable
+  - Restart backend after env/package changes
+
+- **`No module named psycopg`**
+  - Install in the same Python environment used to run Uvicorn
+
+- **Port already in use (`WinError 10048`)**
+  - Stop existing process on port 8000 or run backend on another port:
+    - `uvicorn main:app --reload --port 8001`
 
 ---
 
