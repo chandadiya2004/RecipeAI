@@ -34,22 +34,50 @@ export default function Index() {
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
+
     let animFrame: number;
     let pos = 0;
     const step = 0.5;
-    const halfWidth = track.scrollWidth / 2;
+    let halfWidth = 0;
+
+    const recalcHalfWidth = () => {
+      halfWidth = track.scrollWidth / 2;
+      if (pos >= halfWidth) pos = 0;
+    };
+
+    recalcHalfWidth();
+
+    const images = Array.from(track.querySelectorAll('img'));
+    const onImageLoad = () => recalcHalfWidth();
+    images.forEach((img) => {
+      if (!img.complete) img.addEventListener('load', onImageLoad);
+    });
+
+    window.addEventListener('resize', recalcHalfWidth);
+
     const animate = () => {
+      if (halfWidth <= 0) {
+        animFrame = requestAnimationFrame(animate);
+        return;
+      }
+
       pos += step;
       if (pos >= halfWidth) pos = 0;
       track.style.transform = `translateX(-${pos}px)`;
       animFrame = requestAnimationFrame(animate);
     };
+
     animFrame = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(animFrame);
+
+    return () => {
+      cancelAnimationFrame(animFrame);
+      window.removeEventListener('resize', recalcHalfWidth);
+      images.forEach((img) => img.removeEventListener('load', onImageLoad));
+    };
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-background bg-aura text-foreground flex flex-col overflow-x-hidden">
       <Navbar />
 
       {/* ─── HERO ──────────────────────────────────────────────────── */}
@@ -57,10 +85,10 @@ export default function Index() {
         {/* Ambient blobs */}
         <motion.div style={{ y: heroBgY }} className="pointer-events-none absolute inset-0 -z-10 bg-background overflow-hidden overflow-x-hidden">
           <div className="absolute top-0 left-[-20%] md:left-1/4 w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-primary/20 blur-[120px] rounded-full animate-pulse-glow" />
-          <div className="absolute bottom-0 right-[-20%] md:right-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-[hsl(40_80%_55%)]/15 blur-[120px] rounded-full" />
+          <div className="absolute bottom-0 right-[-20%] md:right-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-secondary/70 blur-[120px] rounded-full" />
         </motion.div>
 
-        <div className="max-w-[90rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-8 lg:gap-8 items-center mt-6 lg:mt-0">
+        <div className="max-w-[90rem] mx-auto w-full grid grid-cols-1 lg:grid-cols-[1.1fr_1fr] gap-8 lg:gap-10 items-center mt-6 lg:mt-0 rounded-[2rem] border border-border/50 bg-background/65 backdrop-blur-xl p-6 sm:p-8 lg:p-10 shadow-xl">
           
           {/* Left Side (Text & CTAs) */}
           <div className="flex flex-col z-10 lg:pr-8 items-center lg:items-start text-center lg:text-left">
@@ -80,7 +108,7 @@ export default function Index() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.1 }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-[5rem] xl:text-[5.5rem] font-black leading-[1.1] tracking-tight text-balance"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.8rem] xl:text-[5.2rem] font-black leading-[1.1] tracking-tight text-balance"
             >
               Cook smarter.{' '}
               <span className="gradient-text drop-shadow-sm block lg:inline">Eat better.</span>
@@ -108,7 +136,7 @@ export default function Index() {
                 <motion.button
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
-                  className="w-full h-14 lg:h-15 px-6 lg:px-8 py-3 lg:py-4 rounded-full gradient-bg text-white font-bold text-base lg:text-lg flex items-center justify-center gap-2.5 shadow-[0_0_40px_hsl(140_60%_40%_/_0.35)] hover:shadow-[0_0_60px_hsl(140_60%_40%_/_0.5)] transition-all duration-300 glow-primary"
+                  className="w-full h-14 lg:h-15 px-6 lg:px-8 py-3 lg:py-4 rounded-full gradient-bg text-white font-bold text-base lg:text-lg flex items-center justify-center gap-2.5 shadow-lg hover:shadow-xl transition-all duration-300 glow-primary"
                 >
                   <Salad className="w-5 h-5 lg:w-6 lg:h-6" />
                   Start from your Fridge
@@ -118,7 +146,7 @@ export default function Index() {
                 <motion.button
                   whileHover={{ scale: 1.04 }}
                   whileTap={{ scale: 0.96 }}
-                  className="w-full h-14 lg:h-15 px-6 lg:px-8 py-3 lg:py-4 rounded-full border-2 border-primary/30 bg-background/60 backdrop-blur text-foreground font-bold text-base lg:text-lg flex items-center justify-center gap-2 hover:border-primary/60 hover:bg-primary/5 transition-all duration-300"
+                  className="w-full h-14 lg:h-15 px-6 lg:px-8 py-3 lg:py-4 rounded-full border-2 border-primary/30 bg-background/70 backdrop-blur text-foreground font-bold text-base lg:text-lg flex items-center justify-center gap-2 hover:border-primary/60 hover:bg-primary/10 transition-all duration-300"
                 >
                   <ChefHat className="w-5 h-5 lg:w-6 lg:h-6 text-primary" />
                   Craving a dish?
@@ -149,7 +177,7 @@ export default function Index() {
             initial={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
             transition={{ duration: 1.2, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-            className="w-full h-full min-h-[350px] sm:min-[450px] lg:min-[600px] relative z-0 flex items-center justify-center mt-6 lg:mt-0"
+            className="w-full h-full min-h-[350px] sm:min-h-[450px] lg:min-h-[600px] relative z-0 flex items-center justify-center mt-6 lg:mt-0"
           >
             <AnimatedChef />
           </motion.div>
@@ -158,7 +186,7 @@ export default function Index() {
       </section>
 
       {/* ─── INFINITE IMAGE MARQUEE ─────────────────────────────────── */}
-      <section className="py-6 overflow-hidden border-y border-border/50 bg-muted/20 backdrop-blur-sm">
+      <section className="py-8 overflow-hidden border-y border-border/50 bg-background/70 backdrop-blur-sm">
         <p className="text-center text-xs font-bold uppercase tracking-[0.3em] text-muted-foreground mb-6">Dishes our AI has mastered</p>
         <div ref={scrollRef} className="overflow-hidden">
           <div ref={trackRef} className="flex gap-4 w-max will-change-transform">
@@ -166,7 +194,7 @@ export default function Index() {
             {[...dishes, ...dishes].map((d, i) => (
               <div
                 key={i}
-                className="relative w-52 h-36 rounded-2xl overflow-hidden flex-shrink-0 group border border-border/40 shadow-md"
+                className="relative w-52 h-36 rounded-2xl overflow-hidden flex-shrink-0 group border border-border/40 shadow-md hover:shadow-lg transition-shadow duration-300"
               >
                 <img
                   src={d.src}
@@ -205,9 +233,9 @@ export default function Index() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5 }}
-            className="md:col-span-2 row-span-1 relative rounded-[2rem] overflow-hidden group border border-border/50 shadow-xl cursor-pointer"
+            className="md:col-span-2 row-span-1 relative rounded-[2rem] overflow-hidden group border border-border/50 shadow-xl cursor-pointer hover:-translate-y-1 hover:shadow-2xl transition-all duration-300"
           >
-            <img src="/breakfast.jpg" alt="Pantry Chef" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <img src="/breakfast.jpg" alt="Pantry Chef" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" />
             <div className="absolute inset-0 bg-gradient-to-br from-black/75 via-black/40 to-transparent" />
             <Link to="/pantry" className="absolute inset-0 z-10 flex flex-col justify-end p-6 sm:p-8">
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl gradient-bg flex items-center justify-center shadow-lg mb-4 sm:mb-5">
@@ -227,12 +255,12 @@ export default function Index() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="relative rounded-[2rem] overflow-hidden group border border-border/50 shadow-xl cursor-pointer"
+            className="relative rounded-[2rem] overflow-hidden group border border-border/50 shadow-xl cursor-pointer hover:-translate-y-1 hover:shadow-2xl transition-all duration-300"
           >
-            <img src="/burger.jpg" alt="Dish Generator" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <img src="/burger.jpg" alt="Dish Generator" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
             <Link to="/generator" className="absolute inset-0 z-10 flex flex-col justify-end p-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center shadow-lg mb-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl gradient-bg flex items-center justify-center shadow-lg mb-4">
                 <ChefHat className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <h3 className="text-xl font-black text-white mb-1.5">Dish Generator</h3>
@@ -249,9 +277,9 @@ export default function Index() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="relative rounded-[2rem] overflow-hidden group border border-border/50 shadow-xl"
+            className="relative rounded-[2rem] overflow-hidden group border border-border/50 shadow-xl hover:-translate-y-1 hover:shadow-2xl transition-all duration-300"
           >
-            <img src="/steam momo.jpg" alt="Steamed Momos" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <img src="/steam momo.jpg" alt="Steamed Momos" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
             <div className="absolute inset-0 z-10 flex flex-col justify-end p-6">
               <span className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-1">Street Food</span>
@@ -266,12 +294,12 @@ export default function Index() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="relative rounded-[2rem] overflow-hidden group border border-border/50 shadow-xl"
+            className="relative rounded-[2rem] overflow-hidden group border border-border/50 shadow-xl hover:-translate-y-1 hover:shadow-2xl transition-all duration-300"
           >
-            <img src="/soup.jpg" alt="AI Chef" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <img src="/soup.jpg" alt="AI Chef" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
             <div className="absolute inset-0 z-10 flex flex-col justify-end p-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-lg mb-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl gradient-bg flex items-center justify-center shadow-lg mb-4">
                 <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <h3 className="text-xl font-black text-white mb-1.5">AI Sous-Chef</h3>
@@ -285,12 +313,12 @@ export default function Index() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="relative rounded-[2rem] overflow-hidden group border border-border/50 shadow-xl"
+            className="relative rounded-[2rem] overflow-hidden group border border-border/50 shadow-xl hover:-translate-y-1 hover:shadow-2xl transition-all duration-300"
           >
-            <img src="/snacks.jpg" alt="Health Analysis" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <img src="/snacks.jpg" alt="Health Analysis" className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
             <div className="absolute inset-0 z-10 flex flex-col justify-end p-6">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-pink-500 to-rose-500 flex items-center justify-center shadow-lg mb-4">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl gradient-bg flex items-center justify-center shadow-lg mb-4">
                 <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
               <h3 className="text-xl font-black text-white mb-1.5">Health Analysis</h3>
@@ -302,7 +330,7 @@ export default function Index() {
       </section>
 
       {/* ─── FINAL CTA ──────────────────────────────────────────────── */}
-      <section className="py-12 md:py-20 px-4 sm:px-6">
+      <section className="py-14 md:py-20 px-4 sm:px-6">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -310,7 +338,7 @@ export default function Index() {
           className="relative max-w-4xl mx-auto rounded-[2rem] md:rounded-[2.5rem] overflow-hidden text-center p-8 sm:p-14 border border-border/50 shadow-2xl"
         >
           <img src="/chicken lolipop.jpg" alt="" className="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none" />
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-600/80 via-pink-600/70 to-orange-500/80 backdrop-blur-[2px]" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/85 via-primary/70 to-primary/60 backdrop-blur-[2px]" />
           <div className="relative z-10">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white mb-3 sm:mb-5 text-balance">Ready to reinvent your kitchen?</h2>
             <p className="text-white/80 text-base sm:text-lg mb-8 sm:mb-10 max-w-lg mx-auto">Join thousands of home cooks who use RecipeAI every day to discover new flavors, reduce food waste, and eat healthier.</p>

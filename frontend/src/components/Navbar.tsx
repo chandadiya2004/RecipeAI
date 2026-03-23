@@ -13,6 +13,7 @@ const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [supportsHover, setSupportsHover] = useState(false);
   const location = useLocation();
 
   useEffect(() => {
@@ -21,23 +22,75 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  useEffect(() => {
+    const media = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const setCapability = () => setSupportsHover(media.matches);
+
+    setCapability();
+    media.addEventListener('change', setCapability);
+
+    return () => media.removeEventListener('change', setCapability);
+  }, []);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setHoveredPath(null);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth >= 768) setIsMobileMenuOpen(false);
+    };
+
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = isMobileMenuOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMobileMenuOpen]);
+
   const isActive = (path: string) => location.pathname === path;
 
+  const handleNavClick = (_path: string) => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    });
+  };
+
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 flex justify-center w-full pointer-events-none">
+    <>
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.button
+            type="button"
+            aria-label="Close mobile menu"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[1px] md:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center w-full pointer-events-none">
       <motion.nav
         initial={{ y: -40, opacity: 0 }}
         animate={{ 
           y: scrolled ? 16 : 0, 
-          opacity: 1,
-          width: scrolled ? '85%' : '100%',
-          maxWidth: scrolled ? '1000px' : '1536px'
+          opacity: 1
         }}
         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
         className={`pointer-events-auto transition-all duration-300 flex items-center justify-between mx-auto relative ${
           scrolled 
-            ? 'glass shadow-[0_8px_30px_rgb(0,0,0,0.12)] bg-background/80 backdrop-blur-2xl border border-border/50 rounded-full px-4 sm:px-6 py-3 mt-0 rounded-b-2xl sm:rounded-full' 
-            : 'bg-transparent pt-6 px-4 sm:px-10 pb-4 border-b border-transparent'
+            ? 'glass shadow-[0_8px_30px_rgb(0,0,0,0.12)] bg-background/85 backdrop-blur-2xl border border-border/50 rounded-2xl px-4 sm:px-6 py-3 mt-0 w-[min(95%,1100px)]' 
+            : 'bg-transparent pt-6 px-4 sm:px-10 pb-4 border-b border-transparent w-full max-w-[1536px]'
         }`}
       >
         
@@ -56,14 +109,18 @@ const Navbar = () => {
         </Link>
 
         {/* Center: Desktop Navigation Links */}
-        <div className="hidden md:flex items-center gap-1 bg-muted/40 p-1.5 rounded-full border border-border/30 backdrop-blur-md">
+        <div
+          className="hidden md:flex items-center gap-1 bg-muted/40 p-1.5 rounded-full border border-border/30 backdrop-blur-md"
+          onMouseLeave={() => setHoveredPath(null)}
+        >
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              onMouseEnter={() => setHoveredPath(item.path)}
-              onMouseLeave={() => setHoveredPath(null)}
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              onMouseEnter={() => supportsHover && setHoveredPath(item.path)}
+              onFocus={() => setHoveredPath(item.path)}
+              onBlur={() => setHoveredPath(null)}
+              onClick={() => handleNavClick(item.path)}
               className={`relative flex items-center gap-2 px-5 py-2.5 text-sm font-bold transition-colors duration-300 rounded-full z-10 ${
                 isActive(item.path) || hoveredPath === item.path
                   ? 'text-primary'
@@ -114,7 +171,9 @@ const Navbar = () => {
           </motion.button>
 
           {/* Mobile Hamburger Button */}
-          <button 
+          <button
+            type="button"
+            aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
             className="md:hidden flex items-center justify-center p-2 rounded-full hover:bg-muted/50 transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
@@ -138,7 +197,7 @@ const Navbar = () => {
                   to={item.path}
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    handleNavClick(item.path);
                   }}
                   className={`flex items-center gap-4 px-5 py-4 rounded-2xl text-base font-bold transition-all duration-300 ${
                     isActive(item.path) 
@@ -156,6 +215,7 @@ const Navbar = () => {
               <div className="h-px w-full bg-border/50 my-2" />
               
               <button 
+                type="button"
                 className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl gradient-bg text-white text-base font-bold shadow-lg shadow-primary/20 glow-primary active:scale-[0.98] transition-all"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
@@ -167,7 +227,8 @@ const Navbar = () => {
         </AnimatePresence>
         
       </motion.nav>
-    </div>
+      </div>
+    </>
   );
 };
 
