@@ -62,35 +62,40 @@ const HealthAnalysis = ({ recipe }: Props) => {
       initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
       animate={inView ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
       transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-      className="glass rounded-3xl p-6 sm:p-8 border-2 border-border/80 shadow-lg bg-gradient-to-br from-background/40 to-muted/20"
+      className="glass rounded-3xl p-5 sm:p-8 border-2 border-border/80 shadow-lg bg-gradient-to-br from-background/40 to-muted/20"
     >
-      <h3 className="text-xl font-bold text-foreground mb-8 flex items-center gap-2">
+      <h3 className="text-lg sm:text-xl font-bold text-foreground mb-5 sm:mb-8 flex items-center gap-2">
         <span className="p-2 gradient-bg rounded-lg text-white shadow-md">🔬</span> 
         Health Analysis
       </h3>
 
-      <div className="flex flex-col sm:flex-row items-center gap-10">
+      <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-10">
         {/* Circular score */}
         <div className="relative flex-shrink-0">
-          <CircularProgress value={recipe.healthScore} />
+          <div className="sm:hidden">
+            <CircularProgress value={recipe.healthScore} size={108} stroke={10} />
+          </div>
+          <div className="hidden sm:block">
+            <CircularProgress value={recipe.healthScore} />
+          </div>
         </div>
 
-        <div className="flex-1 space-y-4">
+        <div className="flex-1 space-y-3 sm:space-y-4 w-full">
           {/* Calories */}
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">🔥</span>
+          <div className="flex items-center justify-center sm:justify-start gap-3">
+            <span className="text-xl sm:text-2xl">🔥</span>
             <div>
-              <p className="text-sm text-muted-foreground">Calories per serving</p>
-              <p className="text-xl font-bold text-foreground">{recipe.calories} kcal</p>
+              <p className="text-xs sm:text-sm text-muted-foreground">Calories per serving</p>
+              <p className="text-lg sm:text-xl font-bold text-foreground">{recipe.calories} kcal</p>
             </div>
           </div>
 
           {/* Tags */}
-          <div className="flex flex-wrap gap-2 mt-4">
+          <div className="flex flex-wrap gap-2 mt-3 sm:mt-4 justify-center sm:justify-start">
             {recipe.tags.map((tag) => (
               <span
                 key={tag}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold border transition-all duration-300 hover:shadow-md ${tagColor(tag)}`}
+                className={`px-3 py-1.5 rounded-full text-[11px] sm:text-xs font-bold border transition-all duration-300 hover:shadow-md ${tagColor(tag)}`}
               >
                 {tag}
               </span>
