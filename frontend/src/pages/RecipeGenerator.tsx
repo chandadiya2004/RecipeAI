@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@clerk/clerk-react';
 import Navbar from '@/components/Navbar';
 import DishInput from '@/components/DishInput';
 import ChatbotPanel from '@/components/ChatbotPanel';
@@ -9,6 +10,7 @@ import SuggestedRecipes from '@/components/SuggestedRecipes';
 import { Recipe, suggestedRecipes } from '@/data/recipes';
 
 const RecipeGenerator = () => {
+  const { getToken } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [recipeData, setRecipeData] = useState<Recipe | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -20,10 +22,15 @@ const RecipeGenerator = () => {
     setErrorMessage(null);
 
     try {
+      const token = await getToken();
+
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/generate-recipe`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dish_name: dishName })
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ dish_name: dishName, source: "dish_generator" })
       });
 
       if (!response.ok) {

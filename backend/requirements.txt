@@ -7,3 +7,5 @@ python-dotenv==1.0.1
 httpx==0.28.1
 anyio==4.9.0
 starlette==0.46.1
+PyJWT==2.10.1
+psycopg[binary]==3.2.6
