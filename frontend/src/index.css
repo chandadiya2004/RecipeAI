@@ -5,45 +5,45 @@
 @tailwind utilities;
 @layer base {
   :root {
-    --background: 40 30% 98%;
-    --foreground: 25 30% 15%;
+    --background: 220 28% 98%;
+    --foreground: 224 28% 14%;
 
     --card: 0 0% 100%;
-    --card-foreground: 25 30% 15%;
+    --card-foreground: 224 28% 14%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 25 30% 15%;
+    --popover-foreground: 224 28% 14%;
 
-    --primary: 140 60% 40%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 40 40% 92%;
-    --secondary-foreground: 25 30% 20%;
+    --secondary: 220 20% 94%;
+    --secondary-foreground: 224 20% 20%;
 
-    --muted: 40 20% 95%;
-    --muted-foreground: 25 15% 45%;
+    --muted: 220 22% 95%;
+    --muted-foreground: 220 13% 40%;
 
-    --accent: 140 40% 90%;
-    --accent-foreground: 140 60% 25%;
+    --accent: 214 90% 92%;
+    --accent-foreground: 221 65% 30%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 40 20% 86%;
-    --input: 40 20% 86%;
-    --ring: 140 60% 40%;
+    --border: 220 20% 86%;
+    --input: 220 20% 86%;
+    --ring: 221 83% 53%;
 
     --radius: 1rem;
 
     /* Custom tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(145 60% 40%), hsl(95 50% 45%), hsl(40 80% 55%), hsl(25 70% 50%));
-    --gradient-primary-hover: linear-gradient(135deg, hsl(145 65% 35%), hsl(95 55% 40%), hsl(40 85% 50%), hsl(25 75% 45%));
-    --gradient-bg-aura: radial-gradient(ellipse at 30% 20%, hsl(145 60% 90% / 0.5), transparent 50%), radial-gradient(ellipse at 70% 80%, hsl(40 60% 90% / 0.6), transparent 50%), radial-gradient(ellipse at 50% 50%, hsl(25 70% 92% / 0.3), transparent 60%);
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(210 90% 56%), hsl(199 89% 48%));
+    --gradient-primary-hover: linear-gradient(135deg, hsl(221 83% 47%), hsl(210 90% 50%), hsl(199 89% 42%));
+    --gradient-bg-aura: radial-gradient(ellipse at 22% 10%, hsl(221 90% 90% / 0.45), transparent 48%), radial-gradient(ellipse at 85% 16%, hsl(199 80% 88% / 0.42), transparent 46%), radial-gradient(ellipse at 50% 100%, hsl(220 30% 92% / 0.65), transparent 50%);
     --glass-bg: hsl(0 0% 100% / 0.7);
     --glass-border: hsl(0 0% 100% / 0.5);
     --glass-shadow: 0 8px 32px hsl(25 30% 10% / 0.08), 0 2px 8px hsl(25 30% 10% / 0.04);
     --glass-shadow-hover: 0 16px 48px hsl(25 30% 10% / 0.12), 0 4px 16px hsl(25 30% 10% / 0.06);
-    --glow-primary: 0 0 20px hsl(145 60% 40% / 0.3), 0 0 60px hsl(95 50% 45% / 0.15);
+    --glow-primary: 0 0 20px hsl(221 83% 53% / 0.28), 0 0 60px hsl(199 89% 48% / 0.16);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -68,7 +68,7 @@
     overflow-x: hidden;
     background-image:
       radial-gradient(circle at 12% 8%, hsl(var(--primary) / 0.12), transparent 30%),
-      radial-gradient(circle at 88% 18%, hsl(40 80% 55% / 0.12), transparent 32%),
+      radial-gradient(circle at 88% 18%, hsl(199 89% 48% / 0.12), transparent 32%),
       radial-gradient(circle at 52% 100%, hsl(var(--secondary) / 0.8), transparent 45%);
     background-attachment: fixed;
   }
@@ -168,8 +168,8 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px hsl(330 80% 60% / 0.2); }
-  50% { box-shadow: 0 0 40px hsl(330 80% 60% / 0.4), 0 0 80px hsl(270 70% 60% / 0.2); }
+  0%, 100% { box-shadow: 0 0 20px hsl(221 83% 53% / 0.2); }
+  50% { box-shadow: 0 0 40px hsl(221 83% 53% / 0.36), 0 0 80px hsl(199 89% 48% / 0.18); }
 }
 
 .animate-float {
