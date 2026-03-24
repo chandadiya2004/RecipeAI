@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Home, Salad, ChefHat, History, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
+import { useAuth } from '@/context/AuthContext';
 
 const navItems = [
   { path: '/', label: 'Home', icon: <Home className="w-4 h-4" /> },
@@ -12,6 +12,7 @@ const navItems = [
 ];
 
 const Navbar = () => {
+  const { user, signOut } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [hoveredPath, setHoveredPath] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -161,8 +162,8 @@ const Navbar = () => {
         <div className="flex items-center gap-2">
           {/* Sign In Button (Hidden on Mobile) */}
           <div className="hidden md:flex items-center gap-2">
-            <SignedOut>
-              <SignInButton mode="modal">
+            {!user && (
+              <Link to="/auth?mode=signin">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -172,8 +173,10 @@ const Navbar = () => {
                   <User className="w-4 h-4 relative z-20" />
                   <span className="relative z-20">Sign In</span>
                 </motion.button>
-              </SignInButton>
-              <SignUpButton mode="modal">
+              </Link>
+            )}
+            {!user && (
+              <Link to="/auth?mode=signup">
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -181,13 +184,17 @@ const Navbar = () => {
                 >
                   Sign Up
                 </motion.button>
-              </SignUpButton>
-            </SignedOut>
-            <SignedIn>
-              <div className="rounded-full border border-border/60 bg-background/90 p-1">
-                <UserButton afterSignOutUrl="/" />
-              </div>
-            </SignedIn>
+              </Link>
+            )}
+            {user && (
+              <button
+                type="button"
+                onClick={() => signOut()}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-full border border-border/70 bg-background/70 text-foreground text-sm font-bold shadow-sm hover:shadow-md transition-all duration-300"
+              >
+                Sign Out
+              </button>
+            )}
           </div>
 
           {/* Mobile Hamburger Button */}
@@ -234,8 +241,8 @@ const Navbar = () => {
               
               <div className="h-px w-full bg-border/50 my-2" />
 
-              <SignedOut>
-                <SignInButton mode="modal">
+              {!user && (
+                <Link to="/auth?mode=signin">
                   <button
                     type="button"
                     className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl gradient-bg text-white text-base font-bold shadow-lg shadow-primary/20 glow-primary active:scale-[0.98] transition-all"
@@ -244,14 +251,21 @@ const Navbar = () => {
                     <User className="w-5 h-5" />
                     Sign In
                   </button>
-                </SignInButton>
-              </SignedOut>
+                </Link>
+              )}
 
-              <SignedIn>
-                <div className="w-full flex items-center justify-center py-2">
-                  <UserButton afterSignOutUrl="/" />
-                </div>
-              </SignedIn>
+              {user && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await signOut();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-2xl border border-border/70 bg-background/70 text-foreground text-base font-bold"
+                >
+                  Sign Out
+                </button>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

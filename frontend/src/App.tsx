@@ -1,14 +1,15 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect, useLayoutEffect } from "react";
-import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useAuth } from "@/context/AuthContext";
 import Index from "./pages/Index.tsx";
 import RecipeGenerator from "./pages/RecipeGenerator.tsx";
 import PantryChef from "./pages/PantryChef.tsx";
 import History from "./pages/History.tsx";
+import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,20 @@ const ScrollToTop = () => {
   return null;
 };
 
+const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-background pt-28 text-center text-muted-foreground">Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/auth?mode=signin" replace />;
+  }
+
+  return children;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -44,44 +59,18 @@ const App = () => (
           <ScrollToTop />
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
           <Route
             path="/pantry"
-            element={
-              <>
-                <SignedIn>
-                  <PantryChef />
-                </SignedIn>
-                <SignedOut>
-                  <Navigate to="/" replace />
-                </SignedOut>
-              </>
-            }
+            element={<ProtectedRoute><PantryChef /></ProtectedRoute>}
           />
           <Route
             path="/generator"
-            element={
-              <>
-                <SignedIn>
-                  <RecipeGenerator />
-                </SignedIn>
-                <SignedOut>
-                  <Navigate to="/" replace />
-                </SignedOut>
-              </>
-            }
+            element={<ProtectedRoute><RecipeGenerator /></ProtectedRoute>}
           />
           <Route
             path="/history"
-            element={
-              <>
-                <SignedIn>
-                  <History />
-                </SignedIn>
-                <SignedOut>
-                  <Navigate to="/" replace />
-                </SignedOut>
-              </>
-            }
+            element={<ProtectedRoute><History /></ProtectedRoute>}
           />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

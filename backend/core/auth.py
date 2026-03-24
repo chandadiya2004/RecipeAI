@@ -1,12 +1,9 @@
 from __future__ import annotations
 
-import base64
-import json
 from dataclasses import dataclass
 from threading import Lock
 from typing import Any
 
-import httpx
 import jwt
 from fastapi import Header, HTTPException
 from jwt import PyJWKClient
@@ -35,116 +32,6 @@ def _get_bearer_token(authorization: str | None) -> str:
     return token
 
 
-def _build_jwks_url(unverified_claims: dict[str, Any]) -> str:
-    if settings.CLERK_JWKS_URL:
-        return settings.CLERK_JWKS_URL
-
-    issuer = unverified_claims.get("iss")
-    if not issuer:
-        raise HTTPException(status_code=401, detail="Token is missing issuer claim")
-
-    return f"{issuer.rstrip('/')}/.well-known/jwks.json"
-
-
-def _url_from_publishable_key() -> str | None:
-    publishable_key = settings.CLERK_PUBLISHABLE_KEY
-    if not publishable_key:
-        return None
-
-    if not (publishable_key.startswith("pk_test_") or publishable_key.startswith("pk_live_")):
-        return None
-
-    try:
-        encoded_host = publishable_key.split("_", 2)[2]
-        padding = "=" * (-len(encoded_host) % 4)
-        decoded = base64.urlsafe_b64decode((encoded_host + padding).encode("utf-8")).decode("utf-8")
-        host = decoded[:-1] if decoded.endswith("$") else decoded
-        host = host.strip()
-        if not host:
-            return None
-        if host.startswith("http://") or host.startswith("https://"):
-            return host.rstrip("/")
-        return f"https://{host.rstrip('/')}"
-    except Exception:
-        return None
-
-
-def _jwks_url_candidates(unverified_claims: dict[str, Any]) -> list[str]:
-    candidates: list[str] = []
-
-    if settings.CLERK_JWKS_URL:
-        candidates.append(settings.CLERK_JWKS_URL.rstrip("/"))
-
-    issuer = unverified_claims.get("iss")
-    if isinstance(issuer, str) and issuer.strip():
-        candidates.append(f"{issuer.rstrip('/')}/.well-known/jwks.json")
-
-    if settings.CLERK_FRONTEND_API_URL:
-        candidates.append(f"{settings.CLERK_FRONTEND_API_URL.rstrip('/')}/.well-known/jwks.json")
-
-    publishable_base = _url_from_publishable_key()
-    if publishable_base:
-        candidates.append(f"{publishable_base.rstrip('/')}/.well-known/jwks.json")
-
-    unique_candidates: list[str] = []
-    for candidate in candidates:
-        normalized = candidate.strip()
-        if normalized and normalized not in unique_candidates:
-            unique_candidates.append(normalized)
-
-    return unique_candidates
-
-
-def _get_signing_key_from_clerk_api(token: str) -> tuple[Any | None, str | None]:
-    if not settings.CLERK_SECRET_KEY:
-        return None, "missing_clerk_secret_key"
-
-    try:
-        token_header = jwt.get_unverified_header(token)
-    except jwt.InvalidTokenError:
-        return None, "invalid_token_header"
-
-    token_kid = token_header.get("kid")
-    if not token_kid:
-        return None, "missing_token_kid"
-
-    try:
-        response = httpx.get(
-            "https://api.clerk.com/v1/jwks",
-            headers={"Authorization": f"Bearer {settings.CLERK_SECRET_KEY}"},
-            timeout=10.0,
-        )
-        response.raise_for_status()
-        payload = response.json()
-        keys: list[dict[str, Any]] = []
-        if isinstance(payload, dict):
-            raw_keys = payload.get("keys")
-            if isinstance(raw_keys, list):
-                keys = [key for key in raw_keys if isinstance(key, dict)]
-
-            if not keys:
-                raw_data = payload.get("data")
-                if isinstance(raw_data, list):
-                    keys = [key for key in raw_data if isinstance(key, dict)]
-        elif isinstance(payload, list):
-            keys = [key for key in payload if isinstance(key, dict)]
-
-        if not keys:
-            return None, f"clerk_api_no_keys_in_response:{type(payload).__name__}"
-
-        for key in keys:
-            if key.get("kid") == token_kid:
-                return jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key)), None
-        return None, f"clerk_api_kid_not_found:{token_kid}"
-    except httpx.HTTPStatusError as exc:
-        status = exc.response.status_code if exc.response is not None else "unknown"
-        return None, f"clerk_api_http_status:{status}"
-    except httpx.RequestError:
-        return None, "clerk_api_request_error"
-    except Exception as exc:
-        return None, f"clerk_api_unknown_error:{type(exc).__name__}:{str(exc)[:160]}"
-
-
 def _get_jwks_client(jwks_url: str) -> PyJWKClient:
     with _jwks_lock:
         existing = _jwks_clients.get(jwks_url)
@@ -156,7 +43,29 @@ def _get_jwks_client(jwks_url: str) -> PyJWKClient:
         return client
 
 
-def verify_clerk_token(token: str) -> AuthenticatedUser:
+def _supabase_jwks_candidates(unverified_claims: dict[str, Any]) -> list[str]:
+    candidates: list[str] = []
+
+    if settings.SUPABASE_JWKS_URL:
+        candidates.append(settings.SUPABASE_JWKS_URL.rstrip("/"))
+
+    if settings.SUPABASE_URL:
+        candidates.append(f"{settings.SUPABASE_URL.rstrip('/')}/auth/v1/.well-known/jwks.json")
+
+    issuer = unverified_claims.get("iss")
+    if isinstance(issuer, str) and issuer.strip():
+        candidates.append(f"{issuer.rstrip('/')}/.well-known/jwks.json")
+
+    unique_candidates: list[str] = []
+    for candidate in candidates:
+        normalized = candidate.strip()
+        if normalized and normalized not in unique_candidates:
+            unique_candidates.append(normalized)
+
+    return unique_candidates
+
+
+def verify_supabase_token(token: str) -> AuthenticatedUser:
     try:
         unverified_claims = jwt.decode(
             token,
@@ -174,30 +83,33 @@ def verify_clerk_token(token: str) -> AuthenticatedUser:
     if not token_algorithm:
         raise HTTPException(status_code=401, detail="Token is missing algorithm header")
 
-    decode_options = {"verify_aud": bool(settings.CLERK_JWT_AUDIENCE)}
+    decode_options = {"verify_aud": bool(settings.SUPABASE_JWT_AUDIENCE)}
     issuer = unverified_claims.get("iss")
 
     if token_algorithm.startswith("HS"):
-        if not settings.CLERK_SECRET_KEY:
-            raise HTTPException(status_code=401, detail="CLERK_SECRET_KEY is required for symmetric token verification")
+        if not settings.SUPABASE_JWT_SECRET:
+            raise HTTPException(
+                status_code=401,
+                detail="SUPABASE_JWT_SECRET is required for symmetric token verification",
+            )
 
         try:
             decoded = jwt.decode(
                 token,
-                settings.CLERK_SECRET_KEY,
+                settings.SUPABASE_JWT_SECRET,
                 algorithms=[token_algorithm],
                 issuer=issuer,
-                audience=settings.CLERK_JWT_AUDIENCE,
+                audience=settings.SUPABASE_JWT_AUDIENCE,
                 options=decode_options,
             )
         except jwt.InvalidTokenError as exc:
             raise HTTPException(status_code=401, detail="Token verification failed") from exc
     else:
-        jwks_candidates = _jwks_url_candidates(unverified_claims)
+        jwks_candidates = _supabase_jwks_candidates(unverified_claims)
         if not jwks_candidates:
             raise HTTPException(
                 status_code=401,
-                detail="No JWKS URL candidates available. Set CLERK_JWKS_URL or CLERK_FRONTEND_API_URL.",
+                detail="No JWKS URL candidates available. Set SUPABASE_URL or SUPABASE_JWKS_URL.",
             )
 
         signing_key = None
@@ -211,20 +123,14 @@ def verify_clerk_token(token: str) -> AuthenticatedUser:
                 last_error = exc
                 continue
 
-        clerk_api_diagnostic: str | None = None
-        if signing_key is None:
-            signing_key, clerk_api_diagnostic = _get_signing_key_from_clerk_api(token)
-
         if signing_key is None:
             tried = ", ".join(jwks_candidates)
             raise HTTPException(
                 status_code=401,
                 detail=(
-                    "Unable to resolve token signing key. "
+                    "Unable to resolve Supabase token signing key. "
                     f"alg={token_algorithm}. Tried JWKS: {tried}. "
-                    "Tried Clerk API JWKS fallback as well. "
-                    f"Clerk API diagnostic: {clerk_api_diagnostic or 'none'}. "
-                    "Configure CLERK_JWKS_URL/CLERK_FRONTEND_API_URL and ensure CLERK_SECRET_KEY is from the same Clerk instance."
+                    "Configure SUPABASE_JWKS_URL or SUPABASE_URL and ensure frontend token comes from this Supabase project."
                 ),
             ) from last_error
 
@@ -234,7 +140,7 @@ def verify_clerk_token(token: str) -> AuthenticatedUser:
                 signing_key,
                 algorithms=[token_algorithm],
                 issuer=issuer,
-                audience=settings.CLERK_JWT_AUDIENCE,
+                audience=settings.SUPABASE_JWT_AUDIENCE,
                 options=decode_options,
             )
         except jwt.InvalidTokenError as exc:
@@ -246,11 +152,11 @@ def verify_clerk_token(token: str) -> AuthenticatedUser:
 
     return AuthenticatedUser(
         user_id=user_id,
-        session_id=decoded.get("sid"),
+        session_id=decoded.get("session_id") or decoded.get("sid"),
         email=decoded.get("email"),
     )
 
 
 def get_authenticated_user(authorization: str | None = Header(default=None)) -> AuthenticatedUser:
     token = _get_bearer_token(authorization)
-    return verify_clerk_token(token)
+    return verify_supabase_token(token)

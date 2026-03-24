@@ -1,5 +1,5 @@
 import { type ReactNode, useEffect, useState } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 
 interface ActivityHistoryItem {
@@ -180,7 +180,7 @@ const HistorySectionBlock = ({
 );
 
 const History = () => {
-  const { getToken } = useAuth();
+  const { getAccessToken } = useAuth();
   const [items, setItems] = useState<ActivityHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isClearing, setIsClearing] = useState(false);
@@ -191,7 +191,7 @@ const History = () => {
     setError(null);
 
     try {
-      const token = await getToken();
+      const token = await getAccessToken();
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/activity-history?limit=100`, {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -213,7 +213,7 @@ const History = () => {
 
   useEffect(() => {
     loadHistory();
-  }, [getToken]);
+  }, [getAccessToken]);
 
   const handleClearHistory = async () => {
     const confirmed = window.confirm('Clear all your history entries? This cannot be undone.');
@@ -223,7 +223,7 @@ const History = () => {
     setError(null);
 
     try {
-      const token = await getToken();
+      const token = await getAccessToken();
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/activity-history`, {
         method: 'DELETE',
         headers: {
