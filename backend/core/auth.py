@@ -63,26 +63,55 @@ def verify_clerk_token(token: str) -> AuthenticatedUser:
     except jwt.InvalidTokenError as exc:
         raise HTTPException(status_code=401, detail="Invalid token") from exc
 
-    jwks_url = _build_jwks_url(unverified_claims)
-
     try:
-        signing_key = _get_jwks_client(jwks_url).get_signing_key_from_jwt(token).key
-    except Exception as exc:
-        raise HTTPException(status_code=401, detail="Unable to resolve token signing key") from exc
+        unverified_header = jwt.get_unverified_header(token)
+    except jwt.InvalidTokenError as exc:
+        raise HTTPException(status_code=401, detail="Invalid token header") from exc
+
+    token_algorithm = unverified_header.get("alg")
+    if not token_algorithm:
+        raise HTTPException(status_code=401, detail="Token is missing algorithm header")
 
     decode_options = {"verify_aud": bool(settings.CLERK_JWT_AUDIENCE)}
+    issuer = unverified_claims.get("iss")
 
-    try:
-        decoded = jwt.decode(
-            token,
-            signing_key,
-            algorithms=["RS256"],
-            issuer=unverified_claims.get("iss"),
-            audience=settings.CLERK_JWT_AUDIENCE,
-            options=decode_options,
-        )
-    except jwt.InvalidTokenError as exc:
-        raise HTTPException(status_code=401, detail="Token verification failed") from exc
+    if token_algorithm.startswith("HS"):
+        if not settings.CLERK_SECRET_KEY:
+            raise HTTPException(status_code=401, detail="CLERK_SECRET_KEY is required for symmetric token verification")
+
+        try:
+            decoded = jwt.decode(
+                token,
+                settings.CLERK_SECRET_KEY,
+                algorithms=[token_algorithm],
+                issuer=issuer,
+                audience=settings.CLERK_JWT_AUDIENCE,
+                options=decode_options,
+            )
+        except jwt.InvalidTokenError as exc:
+            raise HTTPException(status_code=401, detail="Token verification failed") from exc
+    else:
+        jwks_url = _build_jwks_url(unverified_claims)
+
+        try:
+            signing_key = _get_jwks_client(jwks_url).get_signing_key_from_jwt(token).key
+        except Exception as exc:
+            raise HTTPException(
+                status_code=401,
+                detail="Unable to resolve token signing key. Configure CLERK_JWKS_URL for your Clerk instance.",
+            ) from exc
+
+        try:
+            decoded = jwt.decode(
+                token,
+                signing_key,
+                algorithms=[token_algorithm],
+                issuer=issuer,
+                audience=settings.CLERK_JWT_AUDIENCE,
+                options=decode_options,
+            )
+        except jwt.InvalidTokenError as exc:
+            raise HTTPException(status_code=401, detail="Token verification failed") from exc
 
     user_id = decoded.get("sub")
     if not user_id:
