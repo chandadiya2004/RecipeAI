@@ -116,7 +116,21 @@ def _get_signing_key_from_clerk_api(token: str) -> tuple[Any | None, str | None]
         )
         response.raise_for_status()
         payload = response.json()
-        keys = payload.get("keys", [])
+        keys: list[dict[str, Any]] = []
+        if isinstance(payload, dict):
+            raw_keys = payload.get("keys")
+            if isinstance(raw_keys, list):
+                keys = [key for key in raw_keys if isinstance(key, dict)]
+
+            if not keys:
+                raw_data = payload.get("data")
+                if isinstance(raw_data, list):
+                    keys = [key for key in raw_data if isinstance(key, dict)]
+        elif isinstance(payload, list):
+            keys = [key for key in payload if isinstance(key, dict)]
+
+        if not keys:
+            return None, f"clerk_api_no_keys_in_response:{type(payload).__name__}"
 
         for key in keys:
             if key.get("kid") == token_kid:
@@ -127,8 +141,8 @@ def _get_signing_key_from_clerk_api(token: str) -> tuple[Any | None, str | None]
         return None, f"clerk_api_http_status:{status}"
     except httpx.RequestError:
         return None, "clerk_api_request_error"
-    except Exception:
-        return None, "clerk_api_unknown_error"
+    except Exception as exc:
+        return None, f"clerk_api_unknown_error:{type(exc).__name__}:{str(exc)[:160]}"
 
 
 def _get_jwks_client(jwks_url: str) -> PyJWKClient:
