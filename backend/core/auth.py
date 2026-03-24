@@ -9,6 +9,7 @@ from urllib.request import urlopen
 import jwt
 from fastapi import Header, HTTPException
 from jwt import PyJWKClient
+from jwt.exceptions import MissingCryptographyError
 
 from core.config import settings
 
@@ -59,6 +60,11 @@ def _fetch_jwks_keys(jwks_url: str) -> list[dict[str, Any]]:
 def _resolve_signing_key(jwks_url: str, token: str, token_algorithm: str) -> Any:
     try:
         return _get_jwks_client(jwks_url).get_signing_key_from_jwt(token).key
+    except MissingCryptographyError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail="Missing 'cryptography' dependency required for ES256 Supabase token verification.",
+        ) from exc
     except Exception:
         pass
 
@@ -95,6 +101,11 @@ def _resolve_signing_key(jwks_url: str, token: str, token_algorithm: str) -> Any
                 },
             )
             return signing_key
+        except MissingCryptographyError as exc:
+            raise HTTPException(
+                status_code=500,
+                detail="Missing 'cryptography' dependency required for ES256 Supabase token verification.",
+            ) from exc
         except jwt.InvalidTokenError:
             continue
         except Exception:
