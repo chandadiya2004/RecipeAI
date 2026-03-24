@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Bot, User } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { useAuth } from '@/context/AuthContext';
 import { Recipe } from '@/data/recipes';
 
@@ -96,7 +97,13 @@ const ChatbotPanel = ({ currentRecipe }: ChatbotPanelProps) => {
                 {msg.role === 'user' ? <User className="w-3.5 h-3.5" /> : <Bot className="w-3.5 h-3.5" />}
                 {msg.role === 'user' ? 'You' : 'Chef AI'}
               </div>
-              <p className="text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-wrap font-medium">{msg.content}</p>
+              {msg.role === 'assistant' ? (
+                <div className="text-[14px] sm:text-[15px] leading-relaxed font-medium whitespace-pre-wrap [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc [&_ol]:list-decimal [&_ul]:pl-5 [&_ol]:pl-5 [&_li]:mb-1 [&_strong]:font-extrabold">
+                  <ReactMarkdown>{msg.content}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-[14px] sm:text-[15px] leading-relaxed whitespace-pre-wrap font-medium">{msg.content}</p>
+              )}
             </div>
           </motion.div>
         ))}
