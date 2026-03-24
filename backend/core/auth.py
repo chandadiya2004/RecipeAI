@@ -95,18 +95,18 @@ def _jwks_url_candidates(unverified_claims: dict[str, Any]) -> list[str]:
     return unique_candidates
 
 
-def _get_signing_key_from_clerk_api(token: str) -> Any | None:
+def _get_signing_key_from_clerk_api(token: str) -> tuple[Any | None, str | None]:
     if not settings.CLERK_SECRET_KEY:
-        return None
+        return None, "missing_clerk_secret_key"
 
     try:
         token_header = jwt.get_unverified_header(token)
     except jwt.InvalidTokenError:
-        return None
+        return None, "invalid_token_header"
 
     token_kid = token_header.get("kid")
     if not token_kid:
-        return None
+        return None, "missing_token_kid"
 
     try:
         response = httpx.get(
@@ -120,11 +120,15 @@ def _get_signing_key_from_clerk_api(token: str) -> Any | None:
 
         for key in keys:
             if key.get("kid") == token_kid:
-                return jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key))
+                return jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key)), None
+        return None, f"clerk_api_kid_not_found:{token_kid}"
+    except httpx.HTTPStatusError as exc:
+        status = exc.response.status_code if exc.response is not None else "unknown"
+        return None, f"clerk_api_http_status:{status}"
+    except httpx.RequestError:
+        return None, "clerk_api_request_error"
     except Exception:
-        return None
-
-    return None
+        return None, "clerk_api_unknown_error"
 
 
 def _get_jwks_client(jwks_url: str) -> PyJWKClient:
@@ -193,8 +197,9 @@ def verify_clerk_token(token: str) -> AuthenticatedUser:
                 last_error = exc
                 continue
 
+        clerk_api_diagnostic: str | None = None
         if signing_key is None:
-            signing_key = _get_signing_key_from_clerk_api(token)
+            signing_key, clerk_api_diagnostic = _get_signing_key_from_clerk_api(token)
 
         if signing_key is None:
             tried = ", ".join(jwks_candidates)
@@ -203,7 +208,9 @@ def verify_clerk_token(token: str) -> AuthenticatedUser:
                 detail=(
                     "Unable to resolve token signing key. "
                     f"alg={token_algorithm}. Tried JWKS: {tried}. "
-                    "Tried Clerk API JWKS fallback as well. Configure CLERK_JWKS_URL/CLERK_FRONTEND_API_URL and ensure CLERK_SECRET_KEY is from the same Clerk instance."
+                    "Tried Clerk API JWKS fallback as well. "
+                    f"Clerk API diagnostic: {clerk_api_diagnostic or 'none'}. "
+                    "Configure CLERK_JWKS_URL/CLERK_FRONTEND_API_URL and ensure CLERK_SECRET_KEY is from the same Clerk instance."
                 ),
             ) from last_error
 
