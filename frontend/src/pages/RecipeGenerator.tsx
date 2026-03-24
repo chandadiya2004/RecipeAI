@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import DishInput from '@/components/DishInput';
 import ChatbotPanel from '@/components/ChatbotPanel';
@@ -10,7 +10,7 @@ import SuggestedRecipes from '@/components/SuggestedRecipes';
 import { Recipe, suggestedRecipes } from '@/data/recipes';
 
 const RecipeGenerator = () => {
-  const { getToken } = useAuth();
+  const { getAccessToken } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [recipeData, setRecipeData] = useState<Recipe | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -22,7 +22,7 @@ const RecipeGenerator = () => {
     setErrorMessage(null);
 
     try {
-      const token = await getToken();
+      const token = await getAccessToken();
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/generate-recipe`, {
         method: "POST",

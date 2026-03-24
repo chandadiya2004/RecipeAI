@@ -38,8 +38,8 @@
 * 💫 **Stunning, Fluid User Interface**
   Built with **Framer Motion**, the interface features buttery-smooth micro-animations, glassmorphism UI elements, dynamic scroll restoration, and a highly responsive layout that looks great on both mobile and desktop.
 
-* 🔐 **Clerk Authentication (Protected App Flows)**
-  Pantry Chef, Dish Generator, Chat, and History are protected using Clerk. Users must sign in to access core AI features.
+* 🔐 **Supabase Authentication (Protected App Flows)**
+  Pantry Chef, Dish Generator, Chat, and History are protected using Supabase Auth. Users must sign in to access core AI features.
 
 * 🕘 **Activity History with Supabase Postgres**
   User activity is stored in Supabase transaction pooler Postgres and displayed in a dedicated History page with separate sections for **Pantry Chef** and **Dish Generator**.
@@ -65,7 +65,7 @@
 - **Framework:** [FastAPI](https://fastapi.tiangolo.com/) (Python 3.11)
 - **Server:** [Uvicorn](https://www.uvicorn.org/)
 - **AI Integration:** [Groq API](https://groq.com/) using the `llama-3.3-70b-versatile` model for lightning-fast inference.
-- **Authentication:** [Clerk](https://clerk.com/) JWT verification (RS256 + JWKS)
+- **Authentication:** [Supabase Auth](https://supabase.com/docs/guides/auth) JWT verification (JWKS)
 - **Activity Storage:** Supabase Postgres (transaction pooler) via `psycopg`
 - **Data Validation:** Pydantic models
 - **Environment Management:** python-dotenv
@@ -95,8 +95,10 @@ Create a `.env` file in the `backend/` directory:
 # backend/.env
 GROQ_API_KEY=your_groq_api_key_here
 ALLOWED_ORIGINS=*
-CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-CLERK_SECRET_KEY=your_clerk_secret_key
+SUPABASE_URL=https://your-project-ref.supabase.co
+SUPABASE_JWKS_URL=https://your-project-ref.supabase.co/auth/v1/.well-known/jwks.json
+SUPABASE_JWT_AUDIENCE=authenticated
+SUPABASE_JWT_SECRET=
 SUPABASE_DB_URL=your_supabase_transaction_pooler_postgres_url
 ```
 
@@ -122,11 +124,12 @@ cd frontend
 npm install
 ```
 
-Create a `.env.development` file in the `frontend/` directory:
+Create a `.env` file in the `frontend/` directory:
 ```env
-# frontend/.env.development
+# frontend/.env
 VITE_API_URL=http://localhost:8000
-VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=your_supabase_publishable_key
 ```
 
 After signing in, open `/history` in the app to view grouped activity in:
@@ -150,8 +153,10 @@ npm run dev
 4. Set environment variables in Render dashboard:
   - `GROQ_API_KEY`
   - `ALLOWED_ORIGINS`
-  - `CLERK_PUBLISHABLE_KEY`
-  - `CLERK_SECRET_KEY`
+    - `SUPABASE_URL`
+    - `SUPABASE_JWKS_URL`
+    - `SUPABASE_JWT_AUDIENCE`
+    - `SUPABASE_JWT_SECRET` (only if your project uses symmetric JWT signing)
   - `SUPABASE_DB_URL`
 5. Provide the Render URL to your frontend.
 
@@ -160,7 +165,8 @@ npm run dev
 2. Set the **Root Directory** to `frontend`.
 3. Add environment variables:
    - `VITE_API_URL` pointing to your deployed Render backend (e.g., `https://recipeai-backend.onrender.com`)
-   - `VITE_CLERK_PUBLISHABLE_KEY`
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
 4. Custom SPA routing rules are already configured via the included `vercel.json` file.
 5. Deploy!
 
