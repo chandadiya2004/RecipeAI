@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 from dataclasses import dataclass
 from threading import Lock
 from typing import Any
@@ -41,6 +42,55 @@ def _build_jwks_url(unverified_claims: dict[str, Any]) -> str:
         raise HTTPException(status_code=401, detail="Token is missing issuer claim")
 
     return f"{issuer.rstrip('/')}/.well-known/jwks.json"
+
+
+def _url_from_publishable_key() -> str | None:
+    publishable_key = settings.CLERK_PUBLISHABLE_KEY
+    if not publishable_key:
+        return None
+
+    if not (publishable_key.startswith("pk_test_") or publishable_key.startswith("pk_live_")):
+        return None
+
+    try:
+        encoded_host = publishable_key.split("_", 2)[2]
+        padding = "=" * (-len(encoded_host) % 4)
+        decoded = base64.urlsafe_b64decode((encoded_host + padding).encode("utf-8")).decode("utf-8")
+        host = decoded[:-1] if decoded.endswith("$") else decoded
+        host = host.strip()
+        if not host:
+            return None
+        if host.startswith("http://") or host.startswith("https://"):
+            return host.rstrip("/")
+        return f"https://{host.rstrip('/')}"
+    except Exception:
+        return None
+
+
+def _jwks_url_candidates(unverified_claims: dict[str, Any]) -> list[str]:
+    candidates: list[str] = []
+
+    if settings.CLERK_JWKS_URL:
+        candidates.append(settings.CLERK_JWKS_URL.rstrip("/"))
+
+    issuer = unverified_claims.get("iss")
+    if isinstance(issuer, str) and issuer.strip():
+        candidates.append(f"{issuer.rstrip('/')}/.well-known/jwks.json")
+
+    if settings.CLERK_FRONTEND_API_URL:
+        candidates.append(f"{settings.CLERK_FRONTEND_API_URL.rstrip('/')}/.well-known/jwks.json")
+
+    publishable_base = _url_from_publishable_key()
+    if publishable_base:
+        candidates.append(f"{publishable_base.rstrip('/')}/.well-known/jwks.json")
+
+    unique_candidates: list[str] = []
+    for candidate in candidates:
+        normalized = candidate.strip()
+        if normalized and normalized not in unique_candidates:
+            unique_candidates.append(normalized)
+
+    return unique_candidates
 
 
 def _get_jwks_client(jwks_url: str) -> PyJWKClient:
@@ -91,15 +141,23 @@ def verify_clerk_token(token: str) -> AuthenticatedUser:
         except jwt.InvalidTokenError as exc:
             raise HTTPException(status_code=401, detail="Token verification failed") from exc
     else:
-        jwks_url = _build_jwks_url(unverified_claims)
+        jwks_candidates = _jwks_url_candidates(unverified_claims)
+        signing_key = None
+        last_error: Exception | None = None
 
-        try:
-            signing_key = _get_jwks_client(jwks_url).get_signing_key_from_jwt(token).key
-        except Exception as exc:
+        for jwks_url in jwks_candidates:
+            try:
+                signing_key = _get_jwks_client(jwks_url).get_signing_key_from_jwt(token).key
+                break
+            except Exception as exc:
+                last_error = exc
+                continue
+
+        if signing_key is None:
             raise HTTPException(
                 status_code=401,
-                detail="Unable to resolve token signing key. Configure CLERK_JWKS_URL for your Clerk instance.",
-            ) from exc
+                detail="Unable to resolve token signing key. Configure CLERK_JWKS_URL or CLERK_FRONTEND_API_URL for your Clerk instance.",
+            ) from last_error
 
         try:
             decoded = jwt.decode(

@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str
     CLERK_SECRET_KEY: str | None = None
     CLERK_PUBLISHABLE_KEY: str | None = None
+    CLERK_FRONTEND_API_URL: str | None = None
     CLERK_JWKS_URL: str | None = None
     CLERK_JWT_AUDIENCE: str | None = None
     SUPABASE_DB_URL: str | None = None
