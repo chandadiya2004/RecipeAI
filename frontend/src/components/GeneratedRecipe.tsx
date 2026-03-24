@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Clock, BarChart3, Globe, RefreshCw, Bookmark, Share2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { Recipe } from '@/data/recipes';
 import HealthAnalysis from './HealthAnalysis';
 
@@ -44,9 +45,9 @@ const GeneratedRecipe = ({ recipe, onRegenerate }: Props) => {
               <h2 className="text-xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight drop-shadow-lg pb-1.5 sm:pb-3 text-balance">
                 {recipe.title}
               </h2>
-              <p className="text-white/90 text-xs sm:text-base font-medium drop-shadow-md leading-relaxed [display:-webkit-box] [-webkit-line-clamp:4] sm:[-webkit-line-clamp:5] [-webkit-box-orient:vertical] overflow-hidden">
-                {recipe.description}
-              </p>
+              <div className="text-white/90 text-xs sm:text-base font-medium drop-shadow-md leading-relaxed [display:-webkit-box] [-webkit-line-clamp:4] sm:[-webkit-line-clamp:5] [-webkit-box-orient:vertical] overflow-hidden [&_p]:m-0 [&_strong]:font-extrabold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5">
+                <ReactMarkdown>{recipe.description}</ReactMarkdown>
+              </div>
             </div>
           </div>
 
@@ -119,7 +120,9 @@ const GeneratedRecipe = ({ recipe, onRegenerate }: Props) => {
                 <span className="text-2xl sm:text-3xl flex-shrink-0 mt-1 drop-shadow-sm">{step.icon}</span>
                 <div className="flex-1">
                   <span className="text-xs font-black text-primary/80 uppercase tracking-widest mb-1.5 block">Step {step.number}</span>
-                  <p className="text-sm sm:text-base text-foreground font-medium leading-relaxed">{step.text}</p>
+                  <div className="text-sm sm:text-base text-foreground font-medium leading-relaxed [&_p]:m-0 [&_strong]:font-extrabold [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5">
+                    <ReactMarkdown>{step.text}</ReactMarkdown>
+                  </div>
                 </div>
               </motion.div>
             ))}

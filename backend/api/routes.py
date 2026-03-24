@@ -53,6 +53,7 @@ def generate_recipe_endpoint(
         "dish_name": request.dish_name,
         "ingredients": request.ingredients,
         "cuisine": request.cuisine,
+        "difficulty": request.difficulty,
         "dietary_restrictions": request.dietary_restrictions,
         "servings": request.servings,
         "source": request.source,
@@ -64,6 +65,7 @@ def generate_recipe_endpoint(
                 request.dish_name or "",
                 " ".join(request.ingredients or []),
                 request.cuisine or "",
+                request.difficulty or "",
                 " ".join(request.dietary_restrictions or []),
             ]
         )

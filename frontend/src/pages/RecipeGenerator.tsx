@@ -2,24 +2,36 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
-import DishInput from '@/components/DishInput';
+import DishInput, { DishDifficulty, DishSearchPayload } from '@/components/DishInput';
 import ChatbotPanel from '@/components/ChatbotPanel';
 import GeneratedRecipe from '@/components/GeneratedRecipe';
 import LoadingState from '@/components/LoadingState';
 import SuggestedRecipes from '@/components/SuggestedRecipes';
 import { Recipe, suggestedRecipes } from '@/data/recipes';
 
+const normalizeDifficulty = (value?: string): DishDifficulty => {
+  const normalized = (value || '').trim().toLowerCase();
+  if (normalized === 'hard') return 'Hard';
+  if (normalized === 'easy' || normalized === 'simple') return 'Easy';
+  return 'Medium';
+};
+
 const RecipeGenerator = () => {
   const { getAccessToken } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [recipeData, setRecipeData] = useState<Recipe | null>(null);
+  const [requestedPrefs, setRequestedPrefs] = useState<{
+    servings: number;
+    difficulty: DishDifficulty;
+  } | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  const handleSearch = async (dishName: string) => {
+  const handleSearch = async ({ dishName, servings, difficulty }: DishSearchPayload) => {
     setIsLoading(true);
     setRecipeData(null);
     setErrorMessage(null);
+    setRequestedPrefs({ servings, difficulty });
 
     try {
       const token = await getAccessToken();
@@ -30,7 +42,12 @@ const RecipeGenerator = () => {
           "Content-Type": "application/json",
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
-        body: JSON.stringify({ dish_name: dishName, source: "dish_generator" })
+        body: JSON.stringify({
+          dish_name: dishName,
+          servings,
+          difficulty,
+          source: "dish_generator",
+        })
       });
 
       if (!response.ok) {
@@ -66,7 +83,11 @@ const RecipeGenerator = () => {
   const handleSelectRecipe = (id: string) => {
     const suggested = suggestedRecipes.find(r => r.id === id);
     if (suggested) {
-      handleSearch(suggested.title);
+      handleSearch({
+        dishName: suggested.title,
+        servings: suggested.servings,
+        difficulty: normalizeDifficulty(suggested.difficulty),
+      });
     }
   };
 
@@ -94,7 +115,26 @@ const RecipeGenerator = () => {
          )}
          {!isLoading && recipeData && (
            <div className="mt-0 md:-mt-10 transition-all">
-             <GeneratedRecipe recipe={recipeData} onRegenerate={() => handleSearch(recipeData.title)} />
+             {requestedPrefs && (
+               <div className="mb-4 sm:mb-5 flex flex-wrap gap-2 sm:gap-3 px-1">
+                 <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold border border-border/70 bg-muted/40 text-foreground">
+                   Requested Servings: {requestedPrefs.servings}
+                 </span>
+                 <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold border border-primary/40 bg-primary/10 text-primary">
+                   Requested Difficulty: {requestedPrefs.difficulty}
+                 </span>
+               </div>
+             )}
+             <GeneratedRecipe
+               recipe={recipeData}
+               onRegenerate={() =>
+                 handleSearch({
+                   dishName: recipeData.title,
+                   servings: recipeData.servings || 2,
+                   difficulty: normalizeDifficulty(recipeData.difficulty),
+                 })
+               }
+             />
            </div>
          )}
       </div>
