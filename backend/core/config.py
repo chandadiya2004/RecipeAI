@@ -7,10 +7,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 class Settings(BaseSettings):
     GROQ_API_KEY: str
+    ALLOWED_ORIGINS: str | None = None
+    CLERK_PUBLISHABLE_KEY: str | None = None
     CLERK_FRONTEND_API: str | None = None
+    CLERK_FRONTEND_API_URL: str | None = None
     CLERK_JWKS_URL: str | None = None
     CLERK_ISSUER: str | None = None
     CLERK_AUDIENCE: str | None = None
+    CLERK_JWT_AUDIENCE: str | None = None
     CLERK_SECRET_KEY: str | None = None
     SUPABASE_DB_URL: str | None = None
     model_config = SettingsConfigDict(

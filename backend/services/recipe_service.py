@@ -51,6 +51,11 @@ def generate_recipe(request: RecipeRequest) -> RecipeResponse:
         user_prompt += f"I have these ingredients available: {', '.join(request.ingredients)}. Use these as the primary ingredients. "
     if request.cuisine:
         user_prompt += f"Make it {request.cuisine} style. "
+    if request.difficulty:
+        user_prompt += (
+            f"Preferred difficulty level: {request.difficulty}. "
+            "Adjust complexity, techniques, and instruction detail to match this level. "
+        )
     if request.servings:
         user_prompt += f"Desired servings: {request.servings}. "
     if request.dietary_restrictions:
