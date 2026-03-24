@@ -234,79 +234,68 @@ const RecipeGenerator = () => {
       {/* Floating Chat Bubble & Modal */}
       {recipeData && (
         <>
-          {/* Bubble Button - Always Visible */}
+          {/* Bubble Button */}
           <motion.button
             key="chat-bubble"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowChatModal(true)}
-            className="fixed bottom-6 right-6 w-16 h-16 rounded-full gradient-bg text-white shadow-2xl flex items-center justify-center hover:shadow-[0_0_40px_hsl(330_80%_60%_/_0.6)] transition-all duration-300 z-40 glow-primary"
+            initial={{ scale: 0, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0, opacity: 0, y: 20 }}
+            whileHover={{ scale: 1.08 }}
+            whileTap={{ scale: 0.93 }}
+            onClick={() => setShowChatModal(!showChatModal)}
+            className="fixed bottom-6 right-6 z-40 flex items-center gap-3 pl-4 pr-5 h-14 rounded-full
+              bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500
+              text-white font-bold shadow-2xl shadow-purple-500/30
+              hover:shadow-[0_8px_40px_rgba(168,85,247,0.5)]
+              transition-all duration-300 group"
           >
-            <motion.div
-              animate={{ y: [0, -4, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <MessageCircle className="w-7 h-7" />
-            </motion.div>
+            {/* Pulse ring */}
+            <span className="relative flex-shrink-0">
+              <span className="absolute inset-0 rounded-full bg-white/30 animate-ping" />
+              <MessageCircle className="relative w-5 h-5 group-hover:scale-110 transition-transform" />
+            </span>
+            <span className="text-sm tracking-wide">Ask Chef AI</span>
           </motion.button>
 
-          {/* Chat Modal - Floating from Bottom Right */}
+          {/* Chat Modal */}
           {showChatModal && (
             <>
-              {/* Backdrop with blur */}
+              {/* Backdrop */}
               <motion.div
                 key="backdrop"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.2 }}
-                className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50"
+                className="fixed inset-0 bg-black/25 backdrop-blur-[2px] z-40"
                 onClick={() => setShowChatModal(false)}
               />
 
-              {/* Floating Chat Widget */}
+              {/* Chat Widget */}
               <motion.div
                 key="chat-modal"
-                initial={{ 
-                  opacity: 0, 
-                  scale: 0.8,
-                  y: 100,
-                  x: 100
+                initial={{ opacity: 0, scale: 0.88, y: 60, originX: 1, originY: 1 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.88, y: 60 }}
+                transition={{ type: 'spring', damping: 28, stiffness: 320 }}
+                className="fixed z-50 overflow-hidden rounded-2xl shadow-2xl border border-white/10"
+                style={{
+                  bottom: '88px',
+                  right: '24px',
+                  width: 'min(380px, calc(100vw - 32px))',
+                  height: 'min(580px, calc(100vh - 120px))',
                 }}
-                animate={{ 
-                  opacity: 1, 
-                  scale: 1,
-                  y: 0,
-                  x: 0
-                }}
-                exit={{ 
-                  opacity: 0, 
-                  scale: 0.8,
-                  y: 100,
-                  x: 100
-                }}
-                transition={{ 
-                  type: 'spring',
-                  damping: 25,
-                  stiffness: 300,
-                  duration: 0.4
-                }}
-                className="fixed bottom-24 right-6 w-96 h-[600px] rounded-3xl overflow-hidden shadow-2xl z-50 border border-border/50"
               >
-                {/* Close Button - Floating in Corner */}
+                {/* Close button: top-right corner of widget */}
                 <motion.button
-                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileHover={{ scale: 1.12, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => setShowChatModal(false)}
-                  className="absolute -top-3 -right-3 z-20 w-12 h-12 rounded-full gradient-bg text-white flex items-center justify-center shadow-xl hover:shadow-2xl transition-all duration-300"
+                  className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-white/20 backdrop-blur-sm border border-white/25 text-white flex items-center justify-center shadow-md hover:bg-white/30 transition-all duration-200"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-4 h-4" />
                 </motion.button>
 
-                {/* Chatbot Panel */}
                 <ChatbotPanel currentRecipe={recipeData} />
               </motion.div>
             </>

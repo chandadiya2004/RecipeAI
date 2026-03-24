@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Minus, Plus, Zap } from 'lucide-react';
+import { Minus, Plus, Zap, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
@@ -20,13 +20,13 @@ const quickSets = [
     emoji: '🍳',
     title: 'Quick Breakfast',
     cuisine: 'Any',
-    description: 'A fast, satisfying morning meal',
+    description: 'Fast, satisfying morning meal',
     ingredients: ['Eggs', 'Butter', 'Bread', 'Cheese'],
-    color: 'from-amber-500/20 to-yellow-500/10',
-    border: 'border-amber-400/40',
-    ring: 'ring-amber-400/50',
-    glow: 'hover:shadow-amber-300/25',
-    badge: 'bg-amber-100 text-amber-800',
+    gradient: 'from-amber-500 to-yellow-400',
+    bg: 'from-amber-500/12 to-yellow-400/5',
+    border: 'border-amber-400/30',
+    glow: 'hover:shadow-amber-400/20',
+    tag: 'bg-amber-100 text-amber-700',
   },
   {
     emoji: '🍝',
@@ -34,11 +34,11 @@ const quickSets = [
     cuisine: 'Italian',
     description: 'Classic Italian comfort food',
     ingredients: ['Pasta', 'Tomatoes', 'Garlic', 'Olive Oil'],
-    color: 'from-red-500/20 to-orange-500/10',
-    border: 'border-red-400/40',
-    ring: 'ring-red-400/50',
-    glow: 'hover:shadow-red-300/25',
-    badge: 'bg-red-100 text-red-800',
+    gradient: 'from-red-500 to-orange-400',
+    bg: 'from-red-500/12 to-orange-400/5',
+    border: 'border-red-400/30',
+    glow: 'hover:shadow-red-400/20',
+    tag: 'bg-red-100 text-red-700',
   },
   {
     emoji: '🍗',
@@ -46,23 +46,23 @@ const quickSets = [
     cuisine: 'Indian',
     description: 'Hearty protein-packed meal',
     ingredients: ['Chicken', 'Rice', 'Bell Pepper', 'Onion'],
-    color: 'from-orange-500/20 to-amber-400/10',
-    border: 'border-orange-400/40',
-    ring: 'ring-orange-400/50',
-    glow: 'hover:shadow-orange-300/25',
-    badge: 'bg-orange-100 text-orange-800',
+    gradient: 'from-orange-500 to-amber-400',
+    bg: 'from-orange-500/12 to-amber-400/5',
+    border: 'border-orange-400/30',
+    glow: 'hover:shadow-orange-400/20',
+    tag: 'bg-orange-100 text-orange-700',
   },
   {
     emoji: '🥘',
     title: 'Veggie Soup',
     cuisine: 'Any',
-    description: 'Warm and comforting one-pot',
+    description: 'Warm, comforting one-pot',
     ingredients: ['Potatoes', 'Carrots', 'Celery', 'Onion'],
-    color: 'from-green-500/20 to-teal-400/10',
-    border: 'border-green-400/40',
-    ring: 'ring-green-400/50',
-    glow: 'hover:shadow-green-300/25',
-    badge: 'bg-green-100 text-green-800',
+    gradient: 'from-emerald-500 to-teal-400',
+    bg: 'from-emerald-500/12 to-teal-400/5',
+    border: 'border-emerald-400/30',
+    glow: 'hover:shadow-emerald-400/20',
+    tag: 'bg-emerald-100 text-emerald-700',
   },
   {
     emoji: '🍜',
@@ -70,11 +70,11 @@ const quickSets = [
     cuisine: 'Chinese',
     description: 'Asian-style noodle dish',
     ingredients: ['Noodles', 'Soy Sauce', 'Egg', 'Garlic'],
-    color: 'from-purple-500/20 to-pink-400/10',
-    border: 'border-purple-400/40',
-    ring: 'ring-purple-400/50',
-    glow: 'hover:shadow-purple-300/25',
-    badge: 'bg-purple-100 text-purple-800',
+    gradient: 'from-violet-500 to-purple-400',
+    bg: 'from-violet-500/12 to-purple-400/5',
+    border: 'border-violet-400/30',
+    glow: 'hover:shadow-violet-400/20',
+    tag: 'bg-violet-100 text-violet-700',
   },
   {
     emoji: '🥚',
@@ -82,11 +82,11 @@ const quickSets = [
     cuisine: 'Any',
     description: 'Simple and nutritious',
     ingredients: ['Eggs', 'Spinach', 'Tomato', 'Onion'],
-    color: 'from-cyan-500/20 to-blue-400/10',
-    border: 'border-cyan-400/40',
-    ring: 'ring-cyan-400/50',
-    glow: 'hover:shadow-cyan-300/25',
-    badge: 'bg-cyan-100 text-cyan-800',
+    gradient: 'from-cyan-500 to-blue-400',
+    bg: 'from-cyan-500/12 to-blue-400/5',
+    border: 'border-cyan-400/30',
+    glow: 'hover:shadow-cyan-400/20',
+    tag: 'bg-cyan-100 text-cyan-700',
   },
 ];
 
@@ -97,7 +97,6 @@ const PantryChef = () => {
   const [recipeData, setRecipeData] = useState<Recipe | null>(null);
   const [currentQuery, setCurrentQuery] = useState<QueryData | null>(null);
   const [activeCardIdx, setActiveCardIdx] = useState<number | null>(null);
-  // Per-card servings state (default 2 for each)
   const [cardServings, setCardServings] = useState<number[]>(quickSets.map(() => 2));
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -120,7 +119,6 @@ const PantryChef = () => {
       payload.source = 'pantry_chef';
 
       const token = await getAccessToken();
-
       const response = await fetch(`${import.meta.env.VITE_API_URL}/api/generate-recipe`, {
         method: 'POST',
         headers: {
@@ -162,140 +160,157 @@ const PantryChef = () => {
     <div className="min-h-screen bg-background overflow-x-hidden">
       <Navbar />
 
-      {/* ── PAGE HEADER ─────────────────────────────── */}
-      <div className="relative pt-28 pb-4 overflow-hidden">
-        <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-purple-400/10 blur-[130px] rounded-full pointer-events-none -z-10" />
-        <div className="absolute top-0 right-1/3 w-[400px] h-[400px] bg-orange-400/10 blur-[130px] rounded-full pointer-events-none -z-10" />
+      {/* ── PAGE HEADER ───────────────────────────── */}
+      <section className="relative pt-28 pb-6 overflow-hidden">
+        {/* Background glows */}
+        <div className="absolute top-0 left-1/4 w-[600px] h-[400px] bg-primary/8 blur-[140px] rounded-full pointer-events-none -z-10" />
+        <div className="absolute top-10 right-1/4 w-[400px] h-[300px] bg-cyan-400/8 blur-[120px] rounded-full pointer-events-none -z-10" />
 
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55 }}
-          className="text-center px-4 mb-10"
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center px-4 mb-12"
         >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-border/60 bg-background/80 backdrop-blur text-xs font-bold uppercase tracking-widest text-muted-foreground mb-5 shadow-sm">
-            🥗 Ingredient-First Cooking
+          {/* Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-primary/20 bg-primary/5 backdrop-blur-sm mb-6">
+            <span className="text-base">🥗</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-primary">Ingredient-First Cooking</span>
           </div>
+
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight mb-4 leading-[1.1]">
             Pantry <span className="gradient-text">Chef</span>
           </h1>
           <p className="text-muted-foreground text-base md:text-lg max-w-lg mx-auto leading-relaxed">
-            Pick a quick starter set or type your own ingredients — our AI builds a recipe around exactly what you have.
+            Pick a starter set or type your own ingredients — AI builds a perfect recipe around what you have.
           </p>
         </motion.div>
 
-        {/* ── QUICK ACTION CARDS ─────────────────────── */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 mb-2">
-          <div className="flex items-center gap-2 mb-4">
-            <Zap className="w-4 h-4 text-primary" />
-            <span className="text-sm font-bold text-foreground uppercase tracking-wider">Quick Ingredient Sets</span>
-            <span className="text-xs text-muted-foreground ml-1 hidden sm:inline">— customize servings then click to generate</span>
+        {/* ── QUICK ACTION CARDS ──────────────────── */}
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          {/* Section label */}
+          <div className="flex items-center gap-2.5 mb-5">
+            <div className="w-7 h-7 rounded-lg gradient-bg flex items-center justify-center shadow-sm">
+              <Zap className="w-3.5 h-3.5 text-white" />
+            </div>
+            <span className="text-sm font-bold text-foreground">Quick Ingredient Sets</span>
+            <span className="hidden sm:inline text-xs text-muted-foreground">— pick servings then click to generate</span>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
             {quickSets.map((set, idx) => {
               const isActive = activeCardIdx === idx;
               const servings = cardServings[idx];
               return (
                 <motion.div
                   key={set.title}
-                  initial={{ opacity: 0, y: 16 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: idx * 0.07 }}
+                  transition={{ duration: 0.45, delay: idx * 0.06 }}
+                  whileHover={!isLoading ? { y: -4, scale: 1.01 } : {}}
                   className={`
-                    relative flex flex-col rounded-2xl border-2 overflow-hidden
-                    bg-gradient-to-br ${set.color} ${set.border}
-                    transition-all duration-300 hover:shadow-lg ${set.glow}
-                    ${isActive ? `ring-2 ${set.ring}` : ''}
-                    ${isLoading && !isActive ? 'opacity-60' : ''}
+                    relative flex flex-col rounded-2xl border overflow-hidden group
+                    bg-gradient-to-br ${set.bg} ${set.border}
+                    transition-all duration-300 hover:shadow-xl ${set.glow}
+                    ${isActive ? 'ring-2 ring-primary/50 border-primary/40' : ''}
+                    ${isLoading && !isActive ? 'opacity-50' : ''}
                   `}
                 >
-                  {/* Active shimmer */}
+                  {/* Animated loading overlay */}
                   {isActive && (
                     <motion.div
-                      className="absolute inset-0 bg-primary/10 pointer-events-none"
+                      className="absolute inset-0 bg-primary/8 pointer-events-none"
                       animate={{ opacity: [0.3, 0.7, 0.3] }}
                       transition={{ duration: 0.9, repeat: Infinity }}
                     />
                   )}
 
-                  {/* Card body — clickable to generate */}
+                  {/* Top accent line */}
+                  <div className={`h-0.5 w-full bg-gradient-to-r ${set.gradient} opacity-60 group-hover:opacity-100 transition-opacity`} />
+
+                  {/* Card body */}
                   <button
-                    className="text-left p-4 pb-2 flex-1 disabled:cursor-not-allowed"
+                    className="text-left p-4 flex-1 disabled:cursor-not-allowed"
                     disabled={isLoading}
                     onClick={() => !isLoading && handleQuickAction(idx, set)}
                   >
-                    <div className="text-3xl mb-2 leading-none">{set.emoji}</div>
-                    <div className="font-black text-[15px] text-foreground leading-tight mb-1">{set.title}</div>
-                    <div className="text-muted-foreground text-[12px] mb-2.5 leading-snug">{set.description}</div>
+                    {/* Emoji with gradient backdrop */}
+                    <div className={`w-10 h-10 rounded-xl mb-3 flex items-center justify-center text-xl bg-gradient-to-br ${set.gradient} shadow-sm`}>
+                      {set.emoji}
+                    </div>
+                    <div className="font-black text-sm text-foreground mb-1 leading-tight">{set.title}</div>
+                    <div className="text-muted-foreground text-xs mb-3 leading-snug">{set.description}</div>
                     <div className="flex flex-wrap gap-1">
                       {set.ingredients.map(ing => (
-                        <span key={ing} className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${set.badge}`}>{ing}</span>
+                        <span key={ing} className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${set.tag}`}>{ing}</span>
                       ))}
                     </div>
                   </button>
 
-                  {/* Servings row — NOT triggering generation */}
-                  <div className="px-4 py-3 border-t border-border/30 flex items-center justify-between gap-2 bg-background/30 backdrop-blur-sm">
-                    <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Servings</span>
-                    <div className="flex items-center gap-2">
+                  {/* Servings + generate footer */}
+                  <div className="px-4 py-2.5 border-t border-border/30 bg-background/40 backdrop-blur-sm flex items-center justify-between gap-2">
+                    {/* Servings stepper */}
+                    <div className="flex items-center gap-1.5">
                       <button
                         onClick={(e) => adjustServings(idx, -1, e)}
                         disabled={isLoading || servings <= 1}
-                        className="w-7 h-7 rounded-lg border border-border/60 bg-background/60 flex items-center justify-center hover:bg-muted/60 disabled:opacity-40 transition-all active:scale-90"
+                        className="w-6 h-6 rounded-md border border-border/60 bg-background/70 flex items-center justify-center hover:bg-muted/60 disabled:opacity-40 transition-all active:scale-90"
                       >
-                        <Minus className="w-3.5 h-3.5" />
+                        <Minus className="w-3 h-3" />
                       </button>
                       <motion.span
                         key={servings}
-                        initial={{ scale: 0.75, opacity: 0 }}
+                        initial={{ scale: 0.7, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        className="w-7 text-center text-sm font-black text-foreground"
+                        className="w-6 text-center text-xs font-black text-foreground"
                       >
                         {servings}
                       </motion.span>
                       <button
                         onClick={(e) => adjustServings(idx, +1, e)}
                         disabled={isLoading || servings >= 10}
-                        className="w-7 h-7 rounded-lg border border-border/60 bg-background/60 flex items-center justify-center hover:bg-muted/60 disabled:opacity-40 transition-all active:scale-90"
+                        className="w-6 h-6 rounded-md border border-border/60 bg-background/70 flex items-center justify-center hover:bg-muted/60 disabled:opacity-40 transition-all active:scale-90"
                       >
-                        <Plus className="w-3.5 h-3.5" />
+                        <Plus className="w-3 h-3" />
                       </button>
+                      <span className="text-[10px] text-muted-foreground font-medium">servings</span>
                     </div>
-                  </div>
 
-                  {/* Generate CTA strip */}
-                  <button
-                    disabled={isLoading}
-                    onClick={() => !isLoading && handleQuickAction(idx, set)}
-                    className={`w-full py-2 text-[12px] font-black uppercase tracking-widest transition-all duration-200
-                      ${isActive
-                        ? 'bg-primary/20 text-primary'
-                        : 'bg-background/40 text-muted-foreground hover:text-primary hover:bg-primary/10'
-                      }
-                      disabled:cursor-not-allowed
-                    `}
-                  >
-                    {isActive ? 'Generating...' : `Generate for ${servings} →`}
-                  </button>
+                    {/* Generate button */}
+                    <button
+                      disabled={isLoading}
+                      onClick={() => !isLoading && handleQuickAction(idx, set)}
+                      className={`flex items-center gap-1 text-[11px] font-black uppercase tracking-wider transition-all duration-200 rounded-lg px-2.5 py-1
+                        ${isActive
+                          ? 'bg-primary/15 text-primary'
+                          : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
+                        }
+                      `}
+                    >
+                      {isActive ? 'Cooking…' : 'Cook'}
+                      {!isActive && <ChevronRight className="w-3 h-3" />}
+                    </button>
+                  </div>
                 </motion.div>
               );
             })}
           </div>
 
           {/* Divider */}
-          <div className="flex items-center gap-4 mt-8">
-            <div className="flex-1 h-px bg-border/60" />
-            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-2">or add your own ingredients below</span>
-            <div className="flex-1 h-px bg-border/60" />
+          <div className="flex items-center gap-4 mt-10 mb-2">
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-2 whitespace-nowrap">
+              or add your own ingredients below
+            </span>
+            <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* ── MANUAL FORM ──────────────────────────────── */}
+      {/* ── MANUAL FORM ───────────────────────── */}
       <HeroSection onGenerate={handleGenerate} isLoading={isLoading} />
 
-      {/* ── RESULT ───────────────────────────────────── */}
+      {/* ── RESULT ────────────────────────────── */}
       <div ref={resultRef}>
         <AnimatePresence mode="wait">
           {isLoading && (
@@ -316,7 +331,6 @@ const PantryChef = () => {
           )}
         </AnimatePresence>
       </div>
-
     </div>
   );
 };
