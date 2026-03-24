@@ -142,6 +142,12 @@ def verify_clerk_token(token: str) -> AuthenticatedUser:
             raise HTTPException(status_code=401, detail="Token verification failed") from exc
     else:
         jwks_candidates = _jwks_url_candidates(unverified_claims)
+        if not jwks_candidates:
+            raise HTTPException(
+                status_code=401,
+                detail="No JWKS URL candidates available. Set CLERK_JWKS_URL or CLERK_FRONTEND_API_URL.",
+            )
+
         signing_key = None
         last_error: Exception | None = None
 
@@ -154,9 +160,14 @@ def verify_clerk_token(token: str) -> AuthenticatedUser:
                 continue
 
         if signing_key is None:
+            tried = ", ".join(jwks_candidates)
             raise HTTPException(
                 status_code=401,
-                detail="Unable to resolve token signing key. Configure CLERK_JWKS_URL or CLERK_FRONTEND_API_URL for your Clerk instance.",
+                detail=(
+                    "Unable to resolve token signing key. "
+                    f"alg={token_algorithm}. Tried JWKS: {tried}. "
+                    "Configure CLERK_JWKS_URL or CLERK_FRONTEND_API_URL for your Clerk instance."
+                ),
             ) from last_error
 
         try:
