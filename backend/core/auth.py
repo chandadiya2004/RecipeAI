@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from threading import Lock
 from typing import Any
+from urllib.request import urlopen
 
 import jwt
 from fastapi import Header, HTTPException
@@ -41,6 +43,64 @@ def _get_jwks_client(jwks_url: str) -> PyJWKClient:
         client = PyJWKClient(jwks_url)
         _jwks_clients[jwks_url] = client
         return client
+
+
+def _fetch_jwks_keys(jwks_url: str) -> list[dict[str, Any]]:
+    with urlopen(jwks_url, timeout=5) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+
+    keys = payload.get("keys")
+    if not isinstance(keys, list):
+        raise ValueError("JWKS response did not include a valid 'keys' array")
+
+    return [key for key in keys if isinstance(key, dict)]
+
+
+def _resolve_signing_key(jwks_url: str, token: str, token_algorithm: str) -> Any:
+    try:
+        return _get_jwks_client(jwks_url).get_signing_key_from_jwt(token).key
+    except Exception:
+        pass
+
+    unverified_header = jwt.get_unverified_header(token)
+    token_kid = unverified_header.get("kid")
+
+    keys = _fetch_jwks_keys(jwks_url)
+
+    matching_keys = [
+        key
+        for key in keys
+        if (not token_kid or key.get("kid") == token_kid)
+        and key.get("alg", token_algorithm) == token_algorithm
+    ]
+    if not matching_keys:
+        matching_keys = [
+            key for key in keys if (not token_kid or key.get("kid") == token_kid)
+        ]
+
+    for key_dict in matching_keys:
+        try:
+            signing_key = jwt.PyJWK.from_dict(key_dict).key
+            jwt.decode(
+                token,
+                signing_key,
+                algorithms=[token_algorithm],
+                options={
+                    "verify_signature": True,
+                    "verify_exp": False,
+                    "verify_iat": False,
+                    "verify_nbf": False,
+                    "verify_iss": False,
+                    "verify_aud": False,
+                },
+            )
+            return signing_key
+        except jwt.InvalidTokenError:
+            continue
+        except Exception:
+            continue
+
+    raise ValueError("No matching signing key found in JWKS")
 
 
 def _supabase_jwks_candidates(unverified_claims: dict[str, Any]) -> list[str]:
@@ -117,7 +177,7 @@ def verify_supabase_token(token: str) -> AuthenticatedUser:
 
         for jwks_url in jwks_candidates:
             try:
-                signing_key = _get_jwks_client(jwks_url).get_signing_key_from_jwt(token).key
+                signing_key = _resolve_signing_key(jwks_url, token, token_algorithm)
                 break
             except Exception as exc:
                 last_error = exc
@@ -130,7 +190,7 @@ def verify_supabase_token(token: str) -> AuthenticatedUser:
                 detail=(
                     "Unable to resolve Supabase token signing key. "
                     f"alg={token_algorithm}. Tried JWKS: {tried}. "
-                    "Configure SUPABASE_JWKS_URL or SUPABASE_URL and ensure frontend token comes from this Supabase project."
+                    "Configure SUPABASE_JWKS_URL or SUPABASE_URL and ensure frontend token comes from this Supabase project/ref."
                 ),
             ) from last_error
 
