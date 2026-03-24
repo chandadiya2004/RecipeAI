@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import base64
+import json
 from dataclasses import dataclass
 from threading import Lock
 from typing import Any
 
+import httpx
 import jwt
 from fastapi import Header, HTTPException
 from jwt import PyJWKClient
@@ -93,6 +95,38 @@ def _jwks_url_candidates(unverified_claims: dict[str, Any]) -> list[str]:
     return unique_candidates
 
 
+def _get_signing_key_from_clerk_api(token: str) -> Any | None:
+    if not settings.CLERK_SECRET_KEY:
+        return None
+
+    try:
+        token_header = jwt.get_unverified_header(token)
+    except jwt.InvalidTokenError:
+        return None
+
+    token_kid = token_header.get("kid")
+    if not token_kid:
+        return None
+
+    try:
+        response = httpx.get(
+            "https://api.clerk.com/v1/jwks",
+            headers={"Authorization": f"Bearer {settings.CLERK_SECRET_KEY}"},
+            timeout=10.0,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        keys = payload.get("keys", [])
+
+        for key in keys:
+            if key.get("kid") == token_kid:
+                return jwt.algorithms.RSAAlgorithm.from_jwk(json.dumps(key))
+    except Exception:
+        return None
+
+    return None
+
+
 def _get_jwks_client(jwks_url: str) -> PyJWKClient:
     with _jwks_lock:
         existing = _jwks_clients.get(jwks_url)
@@ -160,13 +194,16 @@ def verify_clerk_token(token: str) -> AuthenticatedUser:
                 continue
 
         if signing_key is None:
+            signing_key = _get_signing_key_from_clerk_api(token)
+
+        if signing_key is None:
             tried = ", ".join(jwks_candidates)
             raise HTTPException(
                 status_code=401,
                 detail=(
                     "Unable to resolve token signing key. "
                     f"alg={token_algorithm}. Tried JWKS: {tried}. "
-                    "Configure CLERK_JWKS_URL or CLERK_FRONTEND_API_URL for your Clerk instance."
+                    "Tried Clerk API JWKS fallback as well. Configure CLERK_JWKS_URL/CLERK_FRONTEND_API_URL and ensure CLERK_SECRET_KEY is from the same Clerk instance."
                 ),
             ) from last_error
 
