@@ -1,10 +1,24 @@
 import { createRoot } from "react-dom/client";
+import { ClerkProvider } from "@clerk/clerk-react";
 import App from "./App.tsx";
 import { AuthProvider } from "@/context/AuthContext";
 import "./index.css";
 
+const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+if (!clerkPublishableKey) {
+  throw new Error("Missing VITE_CLERK_PUBLISHABLE_KEY in frontend environment variables.");
+}
+
 createRoot(document.getElementById("root")!).render(
-	<AuthProvider>
-		<App />
-	</AuthProvider>,
+  <ClerkProvider
+    publishableKey={clerkPublishableKey}
+    signInUrl="/auth?mode=signin"
+    signUpUrl="/auth?mode=signup"
+    afterSignOutUrl="/"
+  >
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </ClerkProvider>,
 );

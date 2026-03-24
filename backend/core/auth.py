@@ -1,15 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import json
 from threading import Lock
 from typing import Any
-from urllib.request import urlopen
 
 import jwt
 from fastapi import Header, HTTPException
 from jwt import PyJWKClient
-from jwt.exceptions import MissingCryptographyError
 
 from core.config import settings
 
@@ -46,82 +43,17 @@ def _get_jwks_client(jwks_url: str) -> PyJWKClient:
         return client
 
 
-def _fetch_jwks_keys(jwks_url: str) -> list[dict[str, Any]]:
-    with urlopen(jwks_url, timeout=5) as response:
-        payload = json.loads(response.read().decode("utf-8"))
-
-    keys = payload.get("keys")
-    if not isinstance(keys, list):
-        raise ValueError("JWKS response did not include a valid 'keys' array")
-
-    return [key for key in keys if isinstance(key, dict)]
-
-
-def _resolve_signing_key(jwks_url: str, token: str, token_algorithm: str) -> Any:
-    try:
-        return _get_jwks_client(jwks_url).get_signing_key_from_jwt(token).key
-    except MissingCryptographyError as exc:
-        raise HTTPException(
-            status_code=500,
-            detail="Missing 'cryptography' dependency required for ES256 Supabase token verification.",
-        ) from exc
-    except Exception:
-        pass
-
-    unverified_header = jwt.get_unverified_header(token)
-    token_kid = unverified_header.get("kid")
-
-    keys = _fetch_jwks_keys(jwks_url)
-
-    matching_keys = [
-        key
-        for key in keys
-        if (not token_kid or key.get("kid") == token_kid)
-        and key.get("alg", token_algorithm) == token_algorithm
-    ]
-    if not matching_keys:
-        matching_keys = [
-            key for key in keys if (not token_kid or key.get("kid") == token_kid)
-        ]
-
-    for key_dict in matching_keys:
-        try:
-            signing_key = jwt.PyJWK.from_dict(key_dict).key
-            jwt.decode(
-                token,
-                signing_key,
-                algorithms=[token_algorithm],
-                options={
-                    "verify_signature": True,
-                    "verify_exp": False,
-                    "verify_iat": False,
-                    "verify_nbf": False,
-                    "verify_iss": False,
-                    "verify_aud": False,
-                },
-            )
-            return signing_key
-        except MissingCryptographyError as exc:
-            raise HTTPException(
-                status_code=500,
-                detail="Missing 'cryptography' dependency required for ES256 Supabase token verification.",
-            ) from exc
-        except jwt.InvalidTokenError:
-            continue
-        except Exception:
-            continue
-
-    raise ValueError("No matching signing key found in JWKS")
-
-
-def _supabase_jwks_candidates(unverified_claims: dict[str, Any]) -> list[str]:
+def _clerk_jwks_candidates(unverified_claims: dict[str, Any]) -> list[str]:
     candidates: list[str] = []
 
-    if settings.SUPABASE_JWKS_URL:
-        candidates.append(settings.SUPABASE_JWKS_URL.rstrip("/"))
+    if settings.CLERK_JWKS_URL:
+        candidates.append(settings.CLERK_JWKS_URL.rstrip("/"))
 
-    if settings.SUPABASE_URL:
-        candidates.append(f"{settings.SUPABASE_URL.rstrip('/')}/auth/v1/.well-known/jwks.json")
+    if settings.CLERK_FRONTEND_API:
+        candidates.append(f"{settings.CLERK_FRONTEND_API.rstrip('/')}/.well-known/jwks.json")
+
+    if settings.CLERK_ISSUER:
+        candidates.append(f"{settings.CLERK_ISSUER.rstrip('/')}/.well-known/jwks.json")
 
     issuer = unverified_claims.get("iss")
     if isinstance(issuer, str) and issuer.strip():
@@ -136,7 +68,7 @@ def _supabase_jwks_candidates(unverified_claims: dict[str, Any]) -> list[str]:
     return unique_candidates
 
 
-def verify_supabase_token(token: str) -> AuthenticatedUser:
+def verify_clerk_token(token: str) -> AuthenticatedUser:
     try:
         unverified_claims = jwt.decode(
             token,
@@ -154,33 +86,36 @@ def verify_supabase_token(token: str) -> AuthenticatedUser:
     if not token_algorithm:
         raise HTTPException(status_code=401, detail="Token is missing algorithm header")
 
-    decode_options = {"verify_aud": bool(settings.SUPABASE_JWT_AUDIENCE)}
-    issuer = unverified_claims.get("iss")
+    decode_options = {"verify_aud": bool(settings.CLERK_AUDIENCE)}
+
+    issuer = settings.CLERK_ISSUER or unverified_claims.get("iss")
+    if not issuer:
+        raise HTTPException(status_code=401, detail="Unable to determine token issuer")
 
     if token_algorithm.startswith("HS"):
-        if not settings.SUPABASE_JWT_SECRET:
+        if not settings.CLERK_SECRET_KEY:
             raise HTTPException(
                 status_code=401,
-                detail="SUPABASE_JWT_SECRET is required for symmetric token verification",
+                detail="CLERK_SECRET_KEY is required for symmetric token verification",
             )
 
         try:
             decoded = jwt.decode(
                 token,
-                settings.SUPABASE_JWT_SECRET,
+                settings.CLERK_SECRET_KEY,
                 algorithms=[token_algorithm],
                 issuer=issuer,
-                audience=settings.SUPABASE_JWT_AUDIENCE,
+                audience=settings.CLERK_AUDIENCE,
                 options=decode_options,
             )
         except jwt.InvalidTokenError as exc:
             raise HTTPException(status_code=401, detail="Token verification failed") from exc
     else:
-        jwks_candidates = _supabase_jwks_candidates(unverified_claims)
+        jwks_candidates = _clerk_jwks_candidates(unverified_claims)
         if not jwks_candidates:
             raise HTTPException(
                 status_code=401,
-                detail="No JWKS URL candidates available. Set SUPABASE_URL or SUPABASE_JWKS_URL.",
+                detail="No JWKS URL candidates available. Set CLERK_JWKS_URL or CLERK_FRONTEND_API.",
             )
 
         signing_key = None
@@ -188,7 +123,7 @@ def verify_supabase_token(token: str) -> AuthenticatedUser:
 
         for jwks_url in jwks_candidates:
             try:
-                signing_key = _resolve_signing_key(jwks_url, token, token_algorithm)
+                signing_key = _get_jwks_client(jwks_url).get_signing_key_from_jwt(token).key
                 break
             except Exception as exc:
                 last_error = exc
@@ -199,9 +134,9 @@ def verify_supabase_token(token: str) -> AuthenticatedUser:
             raise HTTPException(
                 status_code=401,
                 detail=(
-                    "Unable to resolve Supabase token signing key. "
+                    "Unable to resolve Clerk token signing key. "
                     f"alg={token_algorithm}. Tried JWKS: {tried}. "
-                    "Configure SUPABASE_JWKS_URL or SUPABASE_URL and ensure frontend token comes from this Supabase project/ref."
+                    "Configure CLERK_JWKS_URL or CLERK_FRONTEND_API and ensure frontend token comes from this Clerk instance."
                 ),
             ) from last_error
 
@@ -211,7 +146,7 @@ def verify_supabase_token(token: str) -> AuthenticatedUser:
                 signing_key,
                 algorithms=[token_algorithm],
                 issuer=issuer,
-                audience=settings.SUPABASE_JWT_AUDIENCE,
+                audience=settings.CLERK_AUDIENCE,
                 options=decode_options,
             )
         except jwt.InvalidTokenError as exc:
@@ -223,11 +158,11 @@ def verify_supabase_token(token: str) -> AuthenticatedUser:
 
     return AuthenticatedUser(
         user_id=user_id,
-        session_id=decoded.get("session_id") or decoded.get("sid"),
+        session_id=decoded.get("sid") or decoded.get("session_id"),
         email=decoded.get("email"),
     )
 
 
 def get_authenticated_user(authorization: str | None = Header(default=None)) -> AuthenticatedUser:
     token = _get_bearer_token(authorization)
-    return verify_supabase_token(token)
+    return verify_clerk_token(token)

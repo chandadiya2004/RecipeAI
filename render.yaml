@@ -12,13 +12,15 @@ services:
         sync: false
       - key: ALLOWED_ORIGINS
         sync: false
-      - key: SUPABASE_URL
+      - key: CLERK_FRONTEND_API
         sync: false
-      - key: SUPABASE_JWKS_URL
+      - key: CLERK_JWKS_URL
         sync: false
-      - key: SUPABASE_JWT_AUDIENCE
+      - key: CLERK_ISSUER
         sync: false
-      - key: SUPABASE_JWT_SECRET
+      - key: CLERK_AUDIENCE
+        sync: false
+      - key: CLERK_SECRET_KEY
         sync: false
       - key: SUPABASE_DB_URL
         sync: false
