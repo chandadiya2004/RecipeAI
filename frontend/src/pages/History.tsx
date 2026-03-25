@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
+import { MessageSquare, ChefHat, ShoppingBasket, Clock, Activity, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 
 interface ActivityHistoryItem {
   id: number;
@@ -116,31 +117,71 @@ const renderDetails = (item: ActivityHistoryItem) => {
   );
 };
 
+const getActivityIcon = (item: ActivityHistoryItem, section: HistorySection) => {
+  if (item.activity_type === 'chat') return <MessageSquare className="w-6 h-6 text-primary drop-shadow-[0_0_8px_rgba(59,130,246,0.3)]" />;
+  if (section === 'pantry') return <ShoppingBasket className="w-6 h-6 text-amber-500 drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]" />;
+  return <ChefHat className="w-6 h-6 text-emerald-500 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]" />;
+};
+
+const getStatusIcon = (status: string) => {
+  if (status === 'success') return <CheckCircle2 className="w-3.5 h-3.5" />;
+  if (status === 'failed') return <XCircle className="w-3.5 h-3.5" />;
+  if (status === 'blocked') return <AlertCircle className="w-3.5 h-3.5" />;
+  return <Activity className="w-3.5 h-3.5" />;
+};
+
 const ActivityCard = ({ item }: { item: ActivityHistoryItem }) => {
   const payload = item.request_payload ?? {};
+  const section = getSection(item);
   const title =
     item.activity_type === 'chat'
       ? 'AI Sous-Chef Chat'
-      : getString(payload.dish_name) || (getSection(item) === 'pantry' ? 'Pantry Recipe Request' : 'Dish Recipe Request');
+      : getString(payload.dish_name) || (section === 'pantry' ? 'Pantry Recipe Request' : 'Dish Recipe Request');
 
   return (
-    <div className="rounded-2xl border border-border/70 bg-background/70 p-4 sm:p-5">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-        <h3 className="font-bold text-foreground text-base sm:text-lg">{title}</h3>
-        <span className="text-xs text-muted-foreground">{new Date(item.created_at).toLocaleString()}</span>
+    <div className="glass glass-hover rounded-2xl p-4 sm:p-5 transition-all duration-300 relative overflow-hidden group border-border/50">
+      {/* Subtle background glow effect based on status */}
+      <div className={`absolute -inset-px opacity-0 group-hover:opacity-100 transition-opacity duration-500 -z-10 bg-gradient-to-r ${
+        item.status === 'success' ? 'from-emerald-500/10 via-transparent to-transparent' :
+        item.status === 'failed' ? 'from-destructive/10 via-transparent to-transparent' :
+        item.status === 'blocked' ? 'from-amber-500/10 via-transparent to-transparent' :
+        'from-primary/10 via-transparent to-transparent'
+      }`} />
+
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div className="flex items-start gap-4 flex-1">
+          <div className="p-3 rounded-2xl glass border-border/50 group-hover:scale-110 transition-transform duration-300 shadow-sm flex-shrink-0">
+            {getActivityIcon(item, section)}
+          </div>
+          <div className="space-y-1.5 w-full">
+            <h3 className="font-bold text-foreground text-base sm:text-lg tracking-tight group-hover:text-primary transition-colors">{title}</h3>
+            
+            <div className="flex items-center flex-wrap gap-2 sm:gap-3 text-xs text-muted-foreground font-medium">
+              <span className="flex items-center gap-1.5 bg-muted/40 px-2 py-1 rounded-md border border-border/50">
+                <Clock className="w-3.5 h-3.5 opacity-70" />
+                {new Date(item.created_at).toLocaleString()}
+              </span>
+              <span
+                className={`flex items-center gap-1 uppercase tracking-wider font-bold px-2.5 py-1 rounded-full border ${statusClasses[item.status] || 'bg-muted text-foreground border-border'}`}
+              >
+                {getStatusIcon(item.status)}
+                {item.status}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="mt-3 flex items-center gap-2">
-        <span className="text-xs text-muted-foreground">{item.endpoint}</span>
-        <span
-          className={`text-[11px] uppercase tracking-wider font-semibold px-2 py-1 rounded-full border ${statusClasses[item.status] || 'bg-muted text-foreground border-border'}`}
-        >
-          {item.status}
-        </span>
+      {item.error_message && (
+        <div className="mt-4 p-3 rounded-xl bg-destructive/10 border border-destructive/20 flex items-start gap-2 text-sm text-destructive font-medium">
+          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+          <p>{item.error_message}</p>
+        </div>
+      )}
+      
+      <div className="mt-3 pl-0 sm:pl-[60px]">
+        {renderDetails(item)}
       </div>
-
-      {item.error_message && <p className="mt-3 text-sm text-destructive">{item.error_message}</p>}
-      {renderDetails(item)}
     </div>
   );
 };
