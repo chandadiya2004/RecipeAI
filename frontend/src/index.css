@@ -54,6 +54,56 @@
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
+
+  .dark {
+    --background: 224 28% 9%;
+    --foreground: 210 40% 98%;
+
+    --card: 224 26% 12%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 224 26% 12%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 217 19% 18%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217 19% 18%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 28% 22%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62% 48%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 19% 24%;
+    --input: 217 19% 24%;
+    --ring: 224 76% 55%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 58%), hsl(210 90% 52%), hsl(199 89% 46%));
+    --gradient-primary-hover: linear-gradient(135deg, hsl(217 91% 52%), hsl(210 90% 46%), hsl(199 89% 40%));
+    --gradient-bg-aura: radial-gradient(ellipse at 22% 10%, hsl(221 70% 38% / 0.38), transparent 48%),
+      radial-gradient(ellipse at 85% 16%, hsl(199 70% 34% / 0.32), transparent 46%),
+      radial-gradient(ellipse at 50% 100%, hsl(220 35% 22% / 0.55), transparent 50%);
+    --glass-bg: hsl(220 28% 11% / 0.78);
+    --glass-border: hsl(210 20% 45% / 0.28);
+    --glass-shadow: 0 8px 32px hsl(0 0% 0% / 0.4), 0 2px 8px hsl(0 0% 0% / 0.22);
+    --glass-shadow-hover: 0 16px 48px hsl(0 0% 0% / 0.5), 0 4px 16px hsl(0 0% 0% / 0.28);
+    --glow-primary: 0 0 24px hsl(217 91% 55% / 0.38), 0 0 64px hsl(199 89% 48% / 0.22);
+
+    --sidebar-background: 224 28% 7%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224 76% 55%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 16%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 18%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
 }
 
 @layer base {
@@ -83,6 +133,17 @@
     background: linear-gradient(to bottom, hsl(var(--background) / 0.15), hsl(var(--background) / 0.7));
     z-index: -20;
     pointer-events: none;
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(circle at 12% 8%, hsl(var(--primary) / 0.2), transparent 32%),
+      radial-gradient(circle at 88% 18%, hsl(199 89% 48% / 0.14), transparent 34%),
+      radial-gradient(circle at 52% 100%, hsl(var(--secondary) / 0.45), transparent 48%);
+  }
+
+  .dark body::before {
+    background: linear-gradient(to bottom, hsl(var(--background) / 0.35), hsl(var(--background) / 0.92));
   }
 }
 
@@ -154,6 +215,16 @@
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  .dark .shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(217 19% 20%) 25%,
+      hsl(217 19% 26%) 50%,
+      hsl(217 19% 20%) 75%
+    );
+    background-size: 200% 100%;
   }
 }
 

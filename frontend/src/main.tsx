@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import { ClerkProvider } from "@clerk/clerk-react";
+import { ThemeProvider } from "next-themes";
 import App from "./App.tsx";
 import { AuthProvider } from "@/context/AuthContext";
 import "./index.css";
@@ -18,7 +19,9 @@ createRoot(document.getElementById("root")!).render(
     afterSignOutUrl="/"
   >
     <AuthProvider>
-      <App />
+      <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} storageKey="recipeai-theme">
+        <App />
+      </ThemeProvider>
     </AuthProvider>
   </ClerkProvider>,
 );

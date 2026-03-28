@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { User, Home, Salad, ChefHat, History, Menu, X } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import ThemeToggle from '@/components/ThemeToggle';
 
 const baseNavItems = [
   { path: '/', label: 'Home', icon: <Home className="w-4 h-4" /> },
@@ -128,8 +129,9 @@ const Navbar = () => {
           ))}
         </div>
 
-        {/* Right Side: Action Button (Desktop) & Mobile Menu Toggle */}
+        {/* Right Side: Theme, Action Button (Desktop) & Mobile Menu Toggle */}
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           {/* Sign In Button (Hidden on Mobile) */}
           <div className="hidden md:flex items-center gap-2">
             {!user && (

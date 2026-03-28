@@ -68,7 +68,7 @@ const HeroSection = ({ onGenerate, isLoading }: HeroSectionProps) => {
                   className="flex-1 h-1.5 rounded-full appearance-none bg-muted-foreground/20 cursor-pointer accent-primary
                     [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5
                     [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:appearance-none
-                    [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:border-[3px]
+                    [&::-webkit-slider-thumb]:bg-card [&::-webkit-slider-thumb]:border-[3px]
                     [&::-webkit-slider-thumb]:border-primary [&::-webkit-slider-thumb]:shadow-md"
                 />
                 <motion.div
