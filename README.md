@@ -3,6 +3,7 @@
   
   # 👨‍🍳 RecipeAI
   **Your Personal AI-Powered Culinary Assistant & Recipe Generator**
+  
 
   <p align="center">
     <img src="https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react" alt="React" />
