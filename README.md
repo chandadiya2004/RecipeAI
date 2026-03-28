@@ -160,6 +160,7 @@ npm run dev
   - `CLERK_AUDIENCE`
   - `CLERK_SECRET_KEY`
   - `SUPABASE_DB_URL`
+  
 5. Provide the Render URL to your frontend.
 
 ### Frontend (Vercel)
