@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Clock, BarChart3, Globe, RefreshCw, Bookmark, Share2 } from 'lucide-react';
+import { Clock, Users, BarChart3, Globe, RefreshCw, CheckCircle2, BookmarkPlus } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { Recipe } from '@/data/recipes';
 import HealthAnalysis from './HealthAnalysis';
 
@@ -11,148 +12,202 @@ interface Props {
 
 const GeneratedRecipe = ({ recipe, onRegenerate }: Props) => {
   const ref = useRef(null);
-  const inView = useInView(ref, { once: true, amount: 0.1 });
+  const inView = useInView(ref, { once: true, amount: 0.05 });
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
+  };
+  const itemVariants = {
+    hidden: { opacity: 0, y: 24 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] } },
+  };
+
+  const statItems = [
+    {
+      icon: Clock, label: recipe.cookingTime, title: 'Cook Time',
+      gradient: 'from-blue-500 to-cyan-400', bg: 'from-blue-500/10 to-cyan-400/5',
+      border: 'border-blue-400/30', iconBg: 'bg-blue-500/15', iconColor: 'text-blue-600',
+    },
+    {
+      icon: Users, label: `${recipe.servings || 2} Servings`, title: 'Servings',
+      gradient: 'from-emerald-500 to-teal-400', bg: 'from-emerald-500/10 to-teal-400/5',
+      border: 'border-emerald-400/30', iconBg: 'bg-emerald-500/15', iconColor: 'text-emerald-600',
+    },
+    {
+      icon: BarChart3, label: recipe.difficulty, title: 'Difficulty',
+      gradient: 'from-amber-500 to-orange-400', bg: 'from-amber-500/10 to-orange-400/5',
+      border: 'border-amber-400/30', iconBg: 'bg-amber-500/15', iconColor: 'text-amber-600',
+    },
+    {
+      icon: Globe, label: `${recipe.cuisineEmoji ?? ''} ${recipe.cuisine}`, title: 'Cuisine',
+      gradient: 'from-violet-500 to-purple-400', bg: 'from-violet-500/10 to-purple-400/5',
+      border: 'border-violet-400/30', iconBg: 'bg-violet-500/15', iconColor: 'text-violet-600',
+    },
+  ];
 
   return (
-    <section ref={ref} className="py-20 px-6">
-      <div className="max-w-3xl mx-auto space-y-8">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20, filter: 'blur(4px)' }}
-          animate={inView ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="glass rounded-3xl overflow-hidden"
-        >
-          <div className="relative h-56 sm:h-72 overflow-hidden gradient-bg flex flex-col justify-end p-6 sm:p-8">
-            {/* Overlay always on top of the gradient or image */}
-            <div className="absolute inset-0 bg-black/20 pointer-events-none z-10" />
-            <div className="absolute inset-x-0 bottom-0 h-4/5 bg-gradient-to-t from-black/90 via-black/50 to-transparent pointer-events-none z-10" />
+    <section ref={ref} className="py-4 sm:py-6 px-4 sm:px-6 max-w-7xl mx-auto">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate={inView ? 'visible' : 'hidden'}
+        className="space-y-5 sm:space-y-6"
+      >
 
-            {/* Only render img when we have a valid URL — avoids broken placeholder */}
-            {recipe.image && (
-              <img
-                src={recipe.image}
-                alt={recipe.title}
-                className="absolute inset-0 w-full h-full object-cover z-0 transition-transform duration-700 hover:scale-105"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                crossOrigin="anonymous"
-                loading="eager"
-              />
-            )}
+        {/* ═══ HERO BANNER ═══════════════════════════════════════════ */}
+        <motion.div variants={itemVariants} className="relative rounded-2xl sm:rounded-3xl overflow-hidden">
+          {/* Theme gradient base */}
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, hsl(221 83% 45%), hsl(210 90% 50%), hsl(199 89% 42%))' }} />
+          {recipe.image && (
+            <img
+              src={recipe.image} alt={recipe.title}
+              className="absolute inset-0 w-full h-full object-cover"
+              crossOrigin="anonymous" loading="eager"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/5" />
 
-            <div className="relative z-20 w-full">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight drop-shadow-lg pb-3">{recipe.title}</h2>
-              <p className="text-white/90 text-sm sm:text-base font-medium drop-shadow-md leading-relaxed max-w-2xl">{recipe.description}</p>
+          <div className="relative z-10 p-6 sm:p-10">
+            <div className="flex flex-wrap items-center gap-2 mb-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-white text-xs font-bold tracking-wider uppercase">
+                {recipe.cuisineEmoji} {recipe.cuisine}
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/25 text-white text-xs font-bold tracking-wider uppercase">
+                {recipe.difficulty}
+              </span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white drop-shadow-xl leading-tight mb-3">
+              {recipe.title}
+            </h1>
+            <div className="text-white/90 text-sm sm:text-base leading-relaxed w-full [&_p]:m-0">
+              <ReactMarkdown>{recipe.description}</ReactMarkdown>
             </div>
           </div>
-
-          <div className="p-6 flex flex-wrap gap-4">
-            {[
-              { icon: <Clock className="w-4 h-4 text-primary" />, label: recipe.cookingTime },
-              { icon: <BarChart3 className="w-4 h-4 text-primary" />, label: recipe.difficulty },
-              { icon: <Globe className="w-4 h-4 text-primary" />, label: `${recipe.cuisineEmoji} ${recipe.cuisine}` },
-            ].map((badge, i) => (
-              <motion.span
-                key={i}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={inView ? { opacity: 1, scale: 1 } : {}}
-                transition={{ duration: 0.3, delay: 0.3 + i * 0.08 }}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-muted/30 border border-border/50 text-sm font-bold tracking-wide text-foreground shadow-sm backdrop-blur-md"
-              >
-                {badge.icon} {badge.label}
-              </motion.span>
-            ))}
-          </div>
         </motion.div>
 
-        {/* Ingredients */}
-        <motion.div
-          initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
-          animate={inView ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
-          transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
-          className="glass rounded-3xl p-6 sm:p-8 border-2 border-border/80 shadow-lg bg-gradient-to-br from-background/40 to-muted/20"
-        >
-          <h3 className="text-xl font-bold text-foreground mb-5 flex items-center gap-2">
-            <span className="p-2 gradient-bg rounded-lg text-white shadow-md">🥗</span> Ingredients
-          </h3>
-          <div className="space-y-1.5">
-            {recipe.ingredients.map((ing, i) => (
+        {/* ═══ STAT CARDS ════════════════════════════════════════════ */}
+        <motion.div variants={itemVariants} className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {statItems.map((item, i) => {
+            const Icon = item.icon;
+            return (
               <motion.div
                 key={i}
-                initial={{ opacity: 0, x: -10 }}
-                animate={inView ? { opacity: 1, x: 0 } : {}}
-                transition={{ duration: 0.3, delay: 0.2 + i * 0.04 }}
-                className="flex items-center gap-4 px-4 py-3 rounded-xl bg-muted/30 border border-border/40 hover:bg-muted/50 transition-colors duration-200"
+                whileHover={{ y: -5, scale: 1.02 }}
+                className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${item.bg} border ${item.border} p-4 sm:p-5 group cursor-default transition-all duration-300 hover:shadow-lg`}
               >
-                <span className="w-2 h-2 rounded-full bg-gradient-to-br from-purple-500 to-orange-500 flex-shrink-0" />
-                <span className="flex-1 text-base text-foreground font-medium">{ing.name}</span>
-                <span className="text-sm font-bold text-primary bg-primary/8 px-2.5 py-0.5 rounded-lg">{ing.quantity}</span>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Steps */}
-        <motion.div
-          initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
-          animate={inView ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
-          transition={{ duration: 0.6, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
-          className="glass rounded-3xl p-6 sm:p-8 border-2 border-border/80 shadow-lg bg-gradient-to-br from-background/40 to-muted/20"
-        >
-          <h3 className="text-xl font-bold text-foreground mb-6 flex items-center gap-2">
-            <span className="p-2 gradient-bg rounded-lg text-white shadow-md">👨‍🍳</span> Steps
-          </h3>
-          <div className="space-y-4">
-            {recipe.steps.map((step, i) => (
-              <motion.div
-                key={step.number}
-                initial={{ opacity: 0, y: 15 }}
-                animate={inView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.5, delay: 0.3 + i * 0.08 }}
-                className="group flex gap-5 p-5 rounded-2xl bg-muted/20 hover:bg-muted/40 border border-transparent hover:border-border/60 transition-all duration-300 relative overflow-hidden"
-              >
-                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gradient-to-b from-purple-500 to-orange-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform origin-top scale-y-0 group-hover:scale-y-100" />
-                <span className="text-3xl flex-shrink-0 mt-1 drop-shadow-sm">{step.icon}</span>
-                <div className="flex-1">
-                  <span className="text-xs font-black text-primary/80 uppercase tracking-widest mb-1.5 block">Step {step.number}</span>
-                  <p className="text-base text-foreground font-medium leading-relaxed">{step.text}</p>
+                {/* Top accent line */}
+                <div className={`absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r ${item.gradient} opacity-70 group-hover:opacity-100 transition-opacity`} />
+                {/* Icon */}
+                <div className={`inline-flex items-center justify-center w-9 h-9 rounded-xl ${item.iconBg} mb-3`}>
+                  <Icon className={`w-4.5 h-4.5 ${item.iconColor}`} />
                 </div>
+                <p className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest mb-1">{item.title}</p>
+                <p className="text-sm sm:text-base font-black text-foreground leading-tight">{item.label}</p>
               </motion.div>
-            ))}
-          </div>
+            );
+          })}
         </motion.div>
 
-        {/* Health Analysis */}
+        {/* ═══ INGREDIENTS + STEPS 2-COL ════════════════════════════ */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.2fr] gap-5 items-start">
+
+          {/* Ingredients */}
+          <motion.div variants={itemVariants} className="rounded-2xl sm:rounded-3xl border border-border/60 overflow-hidden bg-card/50 backdrop-blur-sm shadow-sm">
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-border/50 bg-muted/20">
+              <div className="w-9 h-9 rounded-xl gradient-bg flex items-center justify-center text-base shadow-md flex-shrink-0">🥗</div>
+              <div>
+                <h2 className="text-sm font-bold text-foreground">Ingredients</h2>
+                <p className="text-xs text-foreground/50">{recipe.ingredients.length} items</p>
+              </div>
+            </div>
+            <div className="divide-y divide-border/40">
+              {recipe.ingredients.map((ing, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={inView ? { opacity: 1, x: 0 } : {}}
+                  transition={{ duration: 0.3, delay: 0.2 + i * 0.035 }}
+                  className="flex items-center gap-3 px-5 py-3 hover:bg-primary/5 transition-colors duration-150 group"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-primary/30 group-hover:text-primary flex-shrink-0 transition-colors" />
+                  <span className="flex-1 text-sm font-medium text-foreground">{ing.name}</span>
+                  <span className="flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 whitespace-nowrap">
+                    {ing.quantity}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Cooking Steps */}
+          <motion.div variants={itemVariants} className="rounded-2xl sm:rounded-3xl border border-border/60 overflow-hidden bg-card/50 backdrop-blur-sm shadow-sm">
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-border/50 bg-muted/20">
+              <div className="w-9 h-9 rounded-xl gradient-bg flex items-center justify-center text-base shadow-md flex-shrink-0">👨‍🍳</div>
+              <div>
+                <h2 className="text-sm font-bold text-foreground">Cooking Steps</h2>
+                <p className="text-xs text-foreground/50">{recipe.steps.length} steps</p>
+              </div>
+            </div>
+            <div className="p-4 sm:p-5 space-y-2">
+              {recipe.steps.map((step, i) => (
+                <motion.div
+                  key={step.number}
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={inView ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.38, delay: 0.25 + i * 0.06 }}
+                  className="relative flex gap-3 p-3 sm:p-4 rounded-xl hover:bg-muted/40 transition-all duration-200 group"
+                >
+                  {/* Connector line */}
+                  {i < recipe.steps.length - 1 && (
+                    <div className="absolute left-[23px] sm:left-[27px] top-[44px] sm:top-[48px] bottom-0 w-px bg-border/50 group-hover:bg-primary/20 transition-colors" />
+                  )}
+                  {/* Step circle */}
+                  <div className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full gradient-bg flex items-center justify-center text-white font-black text-xs shadow-md z-10">
+                    {step.number}
+                  </div>
+                  <div className="flex-1 min-w-0 pb-1">
+                    <div className="text-[10px] font-black text-primary/50 uppercase tracking-widest mb-1">Step {step.number}</div>
+                    <div className="text-sm text-foreground/90 leading-relaxed [&_p]:m-0 [&_strong]:font-bold [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4">
+                      <ReactMarkdown>{step.text}</ReactMarkdown>
+                    </div>
+                  </div>
+                  {step.icon && (
+                    <div className="flex-shrink-0 text-xl sm:text-2xl opacity-50 group-hover:opacity-90 transition-opacity self-start mt-0.5">
+                      {step.icon}
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+
+        {/* ═══ HEALTH ANALYSIS ═══════════════════════════════════════ */}
         <HealthAnalysis recipe={recipe} />
 
-        {/* Action Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5, delay: 0.4 }}
-          className="flex flex-wrap gap-3"
-        >
-          {[
-            { icon: <RefreshCw className="w-4 h-4" />, label: 'Regenerate', onClick: onRegenerate, primary: true },
-            { icon: <Bookmark className="w-4 h-4" />, label: 'Save', onClick: () => {}, primary: false },
-            { icon: <Share2 className="w-4 h-4" />, label: 'Share', onClick: () => {}, primary: false },
-          ].map((btn, i) => (
-            <motion.button
-              key={i}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={btn.onClick}
-              className={`flex items-center gap-2 px-5 py-3 rounded-full text-sm font-medium transition-all duration-200 ${
-                btn.primary
-                  ? 'gradient-bg text-primary-foreground glow-primary'
-                  : 'glass glass-hover text-foreground'
-              }`}
-            >
-              {btn.icon} {btn.label}
-            </motion.button>
-          ))}
+        {/* ═══ ACTION BUTTONS ════════════════════════════════════════ */}
+        <motion.div variants={itemVariants} className="flex flex-col sm:flex-row gap-3 pt-1">
+          <motion.button
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={onRegenerate}
+            className="flex items-center justify-center gap-2 px-7 py-3.5 gradient-bg text-white font-bold rounded-2xl shadow-lg hover:shadow-xl glow-primary transition-all duration-300 text-sm"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Regenerate Recipe
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.02, y: -2 }}
+            whileTap={{ scale: 0.97 }}
+            className="flex items-center justify-center gap-2 px-7 py-3.5 bg-card/80 backdrop-blur-sm font-bold rounded-2xl text-foreground border border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all duration-300 text-sm shadow-sm"
+          >
+            <BookmarkPlus className="w-4 h-4" />
+            Save Recipe
+          </motion.button>
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
 };

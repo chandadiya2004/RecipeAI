@@ -12,13 +12,13 @@ const SuggestedRecipes = ({ onSelectRecipe }: Props) => {
   const inView = useInView(ref, { once: true, amount: 0.2 });
 
   return (
-    <section ref={ref} className="py-20 px-6">
+    <section ref={ref} className="py-10 sm:py-16 md:py-20 px-4 sm:px-6">
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 16, filter: 'blur(4px)' }}
           animate={inView ? { opacity: 1, y: 0, filter: 'blur(0px)' } : {}}
           transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          className="mb-10"
+          className="mb-8 sm:mb-10"
         >
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
             Popular Recipes ✨
@@ -26,17 +26,17 @@ const SuggestedRecipes = ({ onSelectRecipe }: Props) => {
           <p className="mt-2 text-muted-foreground">Get inspired by trending dishes</p>
         </motion.div>
 
-        <div className="flex gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-6 px-6">
+        <div className="flex gap-4 sm:gap-5 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-hide -mx-4 sm:-mx-6 px-4 sm:px-6">
           {suggestedRecipes.map((recipe, i) => (
             <motion.div
               key={recipe.id}
               initial={{ opacity: 0, y: 16 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: 0.1 + i * 0.08, ease: [0.16, 1, 0.3, 1] }}
-              className="snap-start flex-shrink-0 w-[280px] group"
+              className="snap-start flex-shrink-0 w-[240px] sm:w-[280px] group"
             >
               <div className="glass rounded-3xl overflow-hidden glass-hover transition-all duration-300 group-hover:-translate-y-1">
-                <div className="relative h-44 overflow-hidden">
+                <div className="relative h-40 sm:h-44 overflow-hidden">
                   <img
                     src={recipe.image}
                     alt={recipe.title}
@@ -47,7 +47,7 @@ const SuggestedRecipes = ({ onSelectRecipe }: Props) => {
                     <Clock className="w-3 h-3" /> {recipe.cookingTime}
                   </div>
                 </div>
-                <div className="p-5">
+                <div className="p-4 sm:p-5">
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-sm">{recipe.cuisineEmoji}</span>
                     <span className="text-xs text-muted-foreground font-medium">{recipe.cuisine}</span>

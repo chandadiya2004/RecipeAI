@@ -5,8 +5,10 @@ class RecipeRequest(BaseModel):
     dish_name: Optional[str] = Field(None, description="Name of the desired dish")
     ingredients: Optional[List[str]] = Field(None, description="List of available ingredients")
     cuisine: Optional[str] = Field(None, description="Preferred cuisine")
+    difficulty: Optional[str] = Field(None, description="Preferred difficulty level")
     dietary_restrictions: Optional[List[str]] = Field(None, description="Any dietary restrictions")
     servings: Optional[int] = Field(None, description="Desired number of servings")
+    source: Optional[str] = Field(None, description="Frontend source of the request")
 
 class IngredientItem(BaseModel):
     name: str
@@ -41,6 +43,21 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[ChatMessage]
     context: Optional[dict] = None
+    source: Optional[str] = None
 
 class ChatResponse(BaseModel):
     response: str
+
+
+class ActivityHistoryItem(BaseModel):
+    id: int
+    activity_type: str
+    endpoint: str
+    status: str
+    request_payload: Optional[dict] = None
+    error_message: Optional[str] = None
+    created_at: str
+
+
+class ActivityHistoryResponse(BaseModel):
+    items: List[ActivityHistoryItem]
