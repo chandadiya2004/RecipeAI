@@ -1,6 +1,7 @@
 import Navbar from '@/components/Navbar';
 import { Link } from 'react-router-dom';
 import { ArrowRight, BadgeCheck, ChefHat, HeartPulse, ShieldCheck, Sparkles, Timer, Users } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const dishGallery = [
   { src: '/breakfast.jpg', title: 'Breakfast Bowl', category: 'Morning Fuel' },
@@ -51,9 +52,13 @@ const processSteps = [
   },
 ];
 
-const authPath = '/auth?mode=signin';
-
 export default function Index() {
+  const { user } = useAuth();
+
+  const getStartedPath = user ? '/pantry' : '/auth?mode=signin';
+  const exploreFeaturesPath = user ? '/generator' : '/auth?mode=signin';
+  const galleryPath = user ? '/generator' : '/auth?mode=signin';
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Navbar />
@@ -79,17 +84,17 @@ export default function Index() {
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <Link to={authPath} className="w-full sm:w-auto">
+              <Link to={getStartedPath} className="w-full sm:w-auto">
                 <button className="w-full sm:w-auto h-12 px-6 rounded-xl gradient-bg text-white font-bold inline-flex items-center justify-center gap-2.5 shadow-md hover:opacity-95 transition-opacity">
-                  Get Started
+                  {user ? 'Open Pantry Chef' : 'Get Started'}
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </Link>
 
-              <Link to={authPath} className="w-full sm:w-auto">
+              <Link to={exploreFeaturesPath} className="w-full sm:w-auto">
                 <button className="w-full sm:w-auto h-12 px-6 rounded-xl border border-border/70 bg-background text-foreground font-bold inline-flex items-center justify-center gap-2.5 hover:bg-muted/60 transition-colors">
                   <ChefHat className="w-4 h-4 text-primary" />
-                  Explore Features
+                  {user ? 'Dish Generator' : 'Explore Features'}
                 </button>
               </Link>
             </div>
@@ -111,7 +116,7 @@ export default function Index() {
           </div>
 
           <div className="rounded-3xl overflow-hidden border border-border/70 shadow-lg bg-muted/30">
-            <Link to={authPath} className="block h-full group">
+            <Link to={getStartedPath} className="block h-full group">
               <img
                 src="/biriyani.jpeg"
                 alt="Delicious biryani plated professionally"
@@ -142,11 +147,13 @@ export default function Index() {
             <div>
               <h2 className="text-3xl sm:text-4xl font-black tracking-tight">Recipe Gallery</h2>
               <p className="text-sm sm:text-base text-muted-foreground mt-1">
-                Click any image to continue to Sign In / Sign Up and start generating.
+                {user 
+                  ? 'Click any image to start generating tailored dishes instantly.' 
+                  : 'Click any image to continue to Sign In / Sign Up and start generating.'}
               </p>
             </div>
-            <Link to={authPath} className="text-sm font-bold text-primary inline-flex items-center gap-1.5 hover:underline">
-              Open authentication
+            <Link to={galleryPath} className="text-sm font-bold text-primary inline-flex items-center gap-1.5 hover:underline">
+              {user ? 'Go to Generator' : 'Open authentication'}
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -154,7 +161,7 @@ export default function Index() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
             {dishGallery.map((dish) => (
               <Link
-                to={authPath}
+                to={galleryPath}
                 key={dish.title}
                 className="group relative rounded-2xl overflow-hidden border border-border/70 shadow-sm hover:shadow-md transition-shadow"
               >
@@ -219,19 +226,47 @@ export default function Index() {
             </div>
 
             <div className="mt-8 rounded-2xl border border-border/70 bg-background/70 p-4 sm:p-5">
-              <div className="flex items-center gap-2.5 mb-2">
-                <Users className="w-5 h-5 text-primary" />
-                <p className="font-bold">Ready for your first generation?</p>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Create an account or sign in to unlock Pantry Chef, Dish Generator, AI Chat, and your personalized activity history.
-              </p>
-              <Link to={authPath} className="inline-flex mt-4">
-                <button className="h-11 px-5 rounded-xl gradient-bg text-white font-bold inline-flex items-center gap-2">
-                  Continue to Sign In / Sign Up
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </Link>
+              {user ? (
+                <>
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <Sparkles className="w-5 h-5 text-primary" />
+                    <p className="font-bold">Welcome back, {user.firstName || 'Chef'}!</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    You're logged in! Dive straight into Pantry Chef or Dish Generator to create your next culinary masterpiece.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                    <Link to="/pantry" className="w-full sm:w-auto">
+                      <button className="w-full sm:w-auto h-11 px-5 rounded-xl gradient-bg text-white font-bold inline-flex items-center justify-center gap-2.5 shadow-md hover:opacity-95 transition-opacity">
+                        Go to Pantry Chef
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </Link>
+                    <Link to="/generator" className="w-full sm:w-auto">
+                      <button className="w-full sm:w-auto h-11 px-5 rounded-xl border border-border/70 bg-background text-foreground font-bold inline-flex items-center justify-center gap-2.5 hover:bg-muted/70 transition-colors">
+                        <ChefHat className="w-4 h-4 text-primary" />
+                        Dish Generator
+                      </button>
+                    </Link>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2.5 mb-2">
+                    <Users className="w-5 h-5 text-primary" />
+                    <p className="font-bold">Ready for your first generation?</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Create an account or sign in to unlock Pantry Chef, Dish Generator, AI Chat, and your personalized activity history.
+                  </p>
+                  <Link to={getStartedPath} className="inline-flex mt-4">
+                    <button className="h-11 px-5 rounded-xl gradient-bg text-white font-bold inline-flex items-center gap-2">
+                      Continue to Sign In / Sign Up
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </section>
