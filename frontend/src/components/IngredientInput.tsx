@@ -42,16 +42,20 @@ const IngredientInput = ({ ingredients, onChange }: IngredientInputProps) => {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <label className="text-xs font-bold uppercase tracking-widest text-foreground/70">Ingredients</label>
+        <label className="text-xs font-extrabold uppercase tracking-widest text-foreground/80 flex items-center gap-1.5">
+          <span className="inline-flex w-2 h-2 rounded-full bg-primary animate-pulse" />
+          Add Your Ingredients
+        </label>
         {ingredients.length > 0 && (
-          <span className="text-[10px] font-semibold text-muted-foreground bg-muted/60 px-2 py-0.5 rounded-full">
-            {ingredients.length} added
+          <span className="text-[10px] font-black text-primary bg-primary/10 border border-primary/20 px-2.5 py-0.5 rounded-full">
+            {ingredients.length} {ingredients.length === 1 ? 'ingredient' : 'ingredients'} added
           </span>
         )}
       </div>
 
-      <div className={`flex flex-wrap gap-2 p-3.5 rounded-2xl bg-background/50 border border-border/80 min-h-[60px]
-        focus-within:ring-2 focus-within:ring-primary/25 focus-within:border-primary/50 transition-all duration-300 backdrop-blur-md`}>
+      <div className={`flex flex-wrap gap-2 p-4 rounded-2xl bg-background/90 border border-primary/45 min-h-[65px]
+        focus-within:ring-2 focus-within:ring-primary/30 focus-within:border-primary/60 transition-all duration-300 backdrop-blur-md
+        shadow-[0_2px_12px_rgba(59,130,246,0.06)] hover:border-primary/55`}>
         <AnimatePresence mode="popLayout">
           {ingredients.map((ing, i) => {
             const color = tagColors[i % tagColors.length];
@@ -101,7 +105,9 @@ const IngredientInput = ({ ingredients, onChange }: IngredientInputProps) => {
         </div>
       </div>
 
-      <p className="text-[10px] text-muted-foreground/60 pl-1">Press <kbd className="font-mono bg-muted/60 px-1 rounded text-[10px]">Enter</kbd> or comma to add · <kbd className="font-mono bg-muted/60 px-1 rounded text-[10px]">Backspace</kbd> to remove last</p>
+      <p className="text-[10px] text-muted-foreground/60 pl-1">
+        Press <kbd className="font-mono bg-muted/70 px-1 py-0.5 rounded text-[10px] text-foreground font-semibold">Enter</kbd> to add · <kbd className="font-mono bg-muted/70 px-1 py-0.5 rounded text-[10px] text-foreground font-semibold">Backspace</kbd> to remove last
+      </p>
     </div>
   );
 };
