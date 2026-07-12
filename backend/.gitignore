@@ -21,4 +21,8 @@ venv/
 =======
 .pytest_cache/
 .venv
+<<<<<<< HEAD
+start.bat
+=======
 >>>>>>> f99511c3373f56ca75692c0131cd131942555428
+>>>>>>> 279fea63eac6236937d32fb528ed5f24fc528440

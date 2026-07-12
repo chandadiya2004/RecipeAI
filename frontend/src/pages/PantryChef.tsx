@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Minus, Plus, Zap, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import GeneratedRecipe from '@/components/GeneratedRecipe';
@@ -134,8 +135,9 @@ const PantryChef = () => {
       setRecipeData(generatedRecipe);
       setShowRecipe(true);
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating recipe:', error);
+      toast.error('Failed to generate AI recipe. Please make sure the backend server is running and Groq AI Key is configured.');
     } finally {
       setIsLoading(false);
       setActiveCardIdx(null);
