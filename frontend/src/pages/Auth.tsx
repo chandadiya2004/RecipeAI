@@ -1,15 +1,26 @@
-import { useEffect, useState, useMemo } from "react";
-import { useAuth, useUser } from "@clerk/clerk-react";
+// import { useEffect, useState, useMemo } from "react";
+// import { useAuth, useUser } from "@clerk/clerk-react";
 import { useLocation, Navigate, useNavigate } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import { Mail, Lock, Loader2, Eye, EyeOff, Github, Chrome } from "lucide-react";
-import { Clerk } from "@clerk/clerk-js";
+// import { Clerk } from "@clerk/clerk-js";
+import { useEffect, useState } from "react";
+import {
+  useAuth,
+  useUser,
+  useSignIn,
+  useSignUp,
+  useClerk,
+} from "@clerk/clerk-react";
 
 const Auth = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { isLoaded, userId, signOut } = useAuth();
   const { user } = useUser();
+  const { signIn, isLoaded: signInLoaded } = useSignIn();
+  const { signUp, isLoaded: signUpLoaded } = useSignUp();
+  const { setActive } = useClerk();
 
   const [mode, setMode] = useState<"signin" | "signup">(
     new URLSearchParams(location.search).get("mode") === "signup" ? "signup" : "signin"
@@ -23,18 +34,20 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [clerkInstance, setClerkInstance] = useState<Clerk | null>(null);
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  // const [clerkInstance, setClerkInstance] = useState<Clerk | null>(null);
 
   // Initialize Clerk instance
-  useEffect(() => {
-    const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-    if (publishableKey && !clerkInstance) {
-      const clerk = new Clerk(publishableKey);
-      clerk.load().then(() => {
-        setClerkInstance(clerk);
-      });
-    }
-  }, [clerkInstance]);
+  // useEffect(() => {
+  //   const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+  //   if (publishableKey && !clerkInstance) {
+  //     const clerk = new Clerk(publishableKey);
+  //     clerk.load().then(() => {
+  //       setClerkInstance(clerk);
+  //     });
+  //   }
+  // }, [clerkInstance]);
 
   // Update mode when URL changes
   useEffect(() => {
@@ -48,7 +61,7 @@ const Auth = () => {
     setLastName("");
   }, [location.search]);
 
-  if (!isLoaded) {
+  if (!isLoaded || !signInLoaded || !signUpLoaded) {
     return <div className="min-h-screen bg-background pt-28 text-center text-muted-foreground">Loading...</div>;
   }
 
@@ -57,110 +70,197 @@ const Auth = () => {
   }
 
   const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
+  e.preventDefault();
 
-    try {
-      if (!clerkInstance?.client) throw new Error("Clerk not initialized");
+  if (!signIn) return;
 
-      // Create sign-in attempt
-      const signInAttempt = await clerkInstance.client.signIn.create({
-        identifier: email,
-        password,
+  setLoading(true);
+  setError(null);
+
+  try {
+    const result = await signIn.create({
+      identifier: email,
+      password,
+    });
+
+    if (result.status === "complete") {
+      await setActive({
+        session: result.createdSessionId,
       });
 
-      // Handle the result
-      if (signInAttempt.status === "complete") {
-        // Successfully signed in, set the active session
-        const userId = signInAttempt.createdUserId;
-        const sessionId = signInAttempt.createdSessionId;
-        
-        if (sessionId) {
-          await clerkInstance.setActive({ session: sessionId });
-          navigate("/pantry");
-        }
-      } else {
-        // Handle incomplete sign-in (e.g., MFA required)
-        setError("Sign in incomplete. Please try again.");
-      }
-    } catch (err: any) {
-      const errorMessage =
-        err?.errors?.[0]?.message ||
-        err?.errors?.[0]?.longMessage ||
-        err?.message ||
-        "Sign in failed. Please check your credentials.";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      navigate("/pantry");
       return;
     }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+    setError("Additional verification is required.");
+  } catch (err: any) {
+    console.error("Sign In Error:", err);
+
+    setError(
+      err?.errors?.[0]?.longMessage ||
+      err?.errors?.[0]?.message ||
+      "Invalid email or password."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
+  // const handleSignUp = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   setError(null);
+
+  //   if (password !== confirmPassword) {
+  //     setError("Passwords do not match");
+  //     return;
+  //   }
+
+  //   if (password.length < 8) {
+  //     setError("Password must be at least 8 characters");
+  //     return;
+  //   }
+
+  //   setLoading(true);
+
+  //   try {
+  //     if (!clerkInstance?.client) throw new Error("Clerk not initialized");
+
+  //     // Create sign-up attempt
+  //     const signUpAttempt = await clerkInstance.client.signUp.create({
+  //       emailAddress: email,
+  //       password,
+  //       firstName,
+  //       lastName,
+  //     });
+
+  //     if (signUpAttempt.status === "complete") {
+  //       // Successfully signed up, set the active session
+  //       const sessionId = signUpAttempt.createdSessionId;
+        
+  //       if (sessionId) {
+  //         await clerkInstance.setActive({ session: sessionId });
+  //         navigate("/pantry");
+  //       }
+  //     } else if (signUpAttempt.status === "missing_requirements") {
+  //       setError("Please complete all required fields");
+  //     } else {
+  //       setError("Sign up incomplete. Please try again.");
+  //     }
+  //   } catch (err: any) {
+  //     const errorMessage =
+  //       err?.errors?.[0]?.message ||
+  //       err?.errors?.[0]?.longMessage ||
+  //       err?.message ||
+  //       "Sign up failed. Please try again.";
+  //     setError(errorMessage);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
+
+const handleSignUp = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!signUp) return;
+
+  setError(null);
+
+  if (password !== confirmPassword) {
+    setError("Passwords do not match");
+    return;
+  }
+
+  if (password.length < 8) {
+    setError("Password must be at least 8 characters");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    await signUp.create({
+      firstName,
+      lastName,
+      emailAddress: email,
+      password,
+    });
+
+    await signUp.prepareEmailAddressVerification({
+      strategy: "email_code",
+    });
+
+    setPendingVerification(true);
+
+  } catch (err: any) {
+    console.error(err);
+
+    setError(
+      err?.errors?.[0]?.longMessage ||
+      err?.errors?.[0]?.message ||
+      "Unable to create account."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
+
+const verifyEmail = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!signUp) return;
+
+  setLoading(true);
+
+  try {
+    const result = await signUp.attemptEmailAddressVerification({
+      code: verificationCode,
+    });
+
+    if (result.status === "complete") {
+      await setActive({
+        session: result.createdSessionId,
+      });
+
+      navigate("/pantry");
       return;
     }
 
-    setLoading(true);
+    setError("Verification failed.");
 
-    try {
-      if (!clerkInstance?.client) throw new Error("Clerk not initialized");
+  } catch (err: any) {
+    console.error(err);
 
-      // Create sign-up attempt
-      const signUpAttempt = await clerkInstance.client.signUp.create({
-        emailAddress: email,
-        password,
-        firstName,
-        lastName,
-      });
-
-      if (signUpAttempt.status === "complete") {
-        // Successfully signed up, set the active session
-        const sessionId = signUpAttempt.createdSessionId;
-        
-        if (sessionId) {
-          await clerkInstance.setActive({ session: sessionId });
-          navigate("/pantry");
-        }
-      } else if (signUpAttempt.status === "missing_requirements") {
-        setError("Please complete all required fields");
-      } else {
-        setError("Sign up incomplete. Please try again.");
-      }
-    } catch (err: any) {
-      const errorMessage =
-        err?.errors?.[0]?.message ||
-        err?.errors?.[0]?.longMessage ||
-        err?.message ||
-        "Sign up failed. Please try again.";
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  };
+    setError(
+      err?.errors?.[0]?.longMessage ||
+      err?.errors?.[0]?.message ||
+      "Invalid verification code."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleOAuth = async (provider: "google" | "github") => {
-    if (!clerkInstance) return;
-    try {
-      // Start OAuth flow
-      const signInAttempt = await clerkInstance.client?.signIn.authenticateWithRedirect({
-        strategy: provider === "google" ? "oauth_google" : "oauth_github",
-        redirectUrl: `/auth/sso-callback`,
-        redirectUrlComplete: `/pantry`,
-      });
-    } catch (err: any) {
-      setError(`Failed to sign in with ${provider}`);
-    }
-  };
+  if (!signIn) return;
+
+  try {
+    await signIn.authenticateWithRedirect({
+      strategy: provider === "google" ? "oauth_google" : "oauth_github",
+
+      redirectUrl: "/sso-callback",
+
+      redirectUrlComplete: "/pantry",
+    });
+  } catch (err: any) {
+    console.error("OAuth Error:", err);
+
+    setError(
+      err?.errors?.[0]?.longMessage ||
+      err?.errors?.[0]?.message ||
+      `Failed to sign in with ${provider}`
+    );
+  }
+};
 
   return (
     <div className="min-h-screen bg-background">
@@ -215,7 +315,41 @@ const Auth = () => {
             </div>
           )}
 
-          <form onSubmit={mode === "signin" ? handleSignIn : handleSignUp} className="space-y-4">
+          <form
+  onSubmit={
+    pendingVerification
+      ? verifyEmail
+      : mode === "signin"
+      ? handleSignIn
+      : handleSignUp
+  }
+  className="space-y-4"
+>{pendingVerification ? (
+  <div className="space-y-4">
+    <div>
+      <label className="text-xs font-semibold text-foreground/70 mb-2 block">
+        Verification Code
+      </label>
+
+      <input
+        type="text"
+        placeholder="Enter the OTP sent to your email"
+        value={verificationCode}
+        onChange={(e) => setVerificationCode(e.target.value)}
+        className="w-full px-4 py-2.5 rounded-xl bg-background border border-border/70 text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
+      />
+    </div>
+
+    <button
+      type="submit"
+      disabled={loading}
+      className="w-full mt-4 py-2.5 px-4 gradient-bg text-white font-bold rounded-xl"
+    >
+      {loading ? "Verifying..." : "Verify Email"}
+    </button>
+  </div>
+) : (
+  <>
             {/* Sign Up: First & Last Name */}
             {mode === "signup" && (
               <>
@@ -348,6 +482,8 @@ const Auth = () => {
               {loading && <Loader2 className="w-4 h-4 animate-spin" />}
               {mode === "signin" ? "Sign In" : "Create Account"}
             </button>
+              </>
+)}
           </form>
 
           {/* Divider */}

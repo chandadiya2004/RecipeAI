@@ -27,6 +27,10 @@ def _compact_payload(payload: dict):
         compact[key] = value
     return compact
 
+@router.get("/")
+def read_root():
+    return {"message": "Welcome to Recipe Maker AI Backend!"}
+
 
 @router.get("/activity-history", response_model=ActivityHistoryResponse)
 def activity_history_endpoint(

@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect, useLayoutEffect } from "react";
+import { AuthenticateWithRedirectCallback } from "@clerk/clerk-react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -60,6 +61,10 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
+          <Route
+            path="/sso-callback"
+            element={<AuthenticateWithRedirectCallback />}
+          />
           <Route
             path="/pantry"
             element={<ProtectedRoute><PantryChef /></ProtectedRoute>}
